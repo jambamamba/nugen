@@ -26,9 +26,6 @@ popd
 popd
 
 git checkout x86_64
-#bazel clean --expunge
-##rm -fr ~/.cache/bazel
-#rm -fr /tmp/.bazel
 mkdir -p /tmp/.bazel
 TEST_TMPDIR=/tmp/.bazel make
 rm -f bazel-build
@@ -48,3 +45,4 @@ if [ ! -f /tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite ]; then
    popd
 fi
 
+./build/minimal
