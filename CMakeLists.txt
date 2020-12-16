@@ -21,7 +21,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 
-add_subdirectory(libedgetpu/libusb)
+add_subdirectory(libusb)
 add_subdirectory(libedgetpu)
 
 add_executable(${PROJ}
@@ -34,13 +34,21 @@ target_include_directories(${PROJ} PRIVATE
     libedgetpu/tensorflow/
     libedgetpu/bazel-libedgetpu/bazel-out/k8-opt/bin/external/flatbuffers/src/_virtual_includes/flatbuffers/
     )
-target_link_directories(${PROJ} PUBLIC
-    ${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/k8/
-    ${CMAKE_SOURCE_DIR}/libedgetpu/libusb/build/
-    ${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
-    ${CMAKE_SOURCE_DIR}/libedgetpu/libusb/build
-    /lib/x86_64-linux-gnu/
-    )
+if ($CMAKE_TOOLCHAIN_FILE STREQUAL "")
+	target_link_directories(${PROJ} PRIVATE
+		${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/k8/
+		${CMAKE_SOURCE_DIR}/libedgetpu/libusb/build/
+		${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
+		/lib/x86_64-linux-gnu/
+		)
+else()
+	target_link_directories(${PROJ} PRIVATE
+		${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/rpi/
+		${CMAKE_SOURCE_DIR}/libedgetpu/libusb/buildpi/
+		${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
+		)
+endif()
+
 target_link_libraries(${PROJ}
     usb
     udev

@@ -1,2 +1,6 @@
 libedgetpu
+libusb
+systemd
+tensorflow
 build
+buildpi
