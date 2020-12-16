@@ -18,15 +18,16 @@ OUT_DIR := $(MAKEFILE_DIR)/out
 OS := $(shell uname -s)
 
 ifeq ($(OS),Linux)
-CPU ?= k8
+#CPU ?= k8
+CPU ?= rpi
 else ifeq ($(OS),Darwin)
 CPU ?= darwin
 else
 $(error $(OS) is not supported)
 endif
 
-ifeq ($(filter $(CPU),k8 armv6 armv7a aarch64 darwin),)
-$(error CPU must be k8, armv7a, armv6, aarch64, or darwin)
+ifeq ($(filter $(CPU),k8 armv6 armv7a aarch64 darwin rpi),)
+$(error CPU must be k8, armv7a, armv6, aarch64, darwin, rpi)
 endif
 
 COMPILATION_MODE ?= opt
@@ -38,13 +39,18 @@ BAZEL_OUT_DIR := $(MAKEFILE_DIR)/bazel-out/$(CPU)-$(COMPILATION_MODE)/bin
 
 # Linux-specific parameters
 BAZEL_BUILD_TARGET_Linux := //tflite/public:libedgetpu_direct_all.so
-BAZEL_BUILD_FLAGS_Linux := --crosstool_top=@crosstool//:toolchains \
-                           --compiler=gcc
+#BAZEL_BUILD_FLAGS_Linux := --crosstool_top=@crosstool//:toolchains --compiler=gcc
+BAZEL_BUILD_FLAGS_Linux := -s --crosstool_top=@coral_crosstool1//:toolchains --cpu=$(CPU) --compiler=rpi
 BAZEL_BUILD_OUTPUT_FILE_Linux := libedgetpu.so.1.0
 BAZEL_BUILD_OUTPUT_SYMLINK_Linux := libedgetpu.so.1
 
 ifeq ($(CPU), armv6)
 BAZEL_BUILD_FLAGS_Linux += --linkopt=-L/usr/lib/arm-linux-gnueabihf/
+endif
+
+#osm
+ifeq ($(CPU), rpi)
+BAZEL_BUILD_FLAGS_Linux += --verbose_failures --linkopt=-L/home/dev/oosman/pi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/lib --linkopt=-L/home/dev/oosman/.leila/lib/libusb/buildpi/
 endif
 
 # Darwin-specific parameters
