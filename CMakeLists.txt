@@ -138,33 +138,23 @@ target_include_directories(${PROJ} PRIVATE
     ./tensorflow/
     ../libusb/
     ${CMAKE_BINARY_DIR}/abseil-cpp
-#    ${CMAKE_SOURCE_DIR}/
-#    ${CMAKE_SOURCE_DIR}/include
-#    ${CMAKE_SOURCE_DIR}/bazel-build
-#    ${TENSORFLOW_DIR}/
-#    ${TENSORFLOW_DIR}/tensorflow/
-#    ${TENSORFLOW_DIR}/tensorflow/lite/
-#    ${TENSORFLOW_DIR}/tensorflow/lite/tools/optimize/
-#    ${CMAKE_BINARY_DIR}/tensorflow/src/tf/
-#    ${CMAKE_BINARY_DIR}/tensorflow/src/tf/tensorflow/lite/tools/make/downloads/flatbuffers/include/
-##    ${CMAKE_SOURCE_DIR}/../eigen3/
-##    ${CMAKE_SOURCE_DIR}/../abseil-cpp/
-##    ${CMAKE_SOURCE_DIR}/../flatbuffers/include/
-#    ${CMAKE_SOURCE_DIR}/googletest/googletest/include
-#    ${CMAKE_SOURCE_DIR}/googletest/googlemock/include
-#    ${CMAKE_BINARY_DIR}/glog_install/include
     )
-target_link_directories(${PROJ} PRIVATE
-    ${CMAKE_BINARY_DIR}
-#    ${TENSORFLOW_DIR}/tensorflow/lite/buildpi/
-#    ${CMAKE_SOURCE_DIR}/../libedgetpu/out/throttled/armv7a/
-#    ${CMAKE_SOURCE_DIR}/../libusb/buildpi
-    ${CMAKE_SYSROOT}/usr/lib/
-    /usr/lib/x86_64-linux-gnu/ #for libdl.so & libusb.so host builds
-    )
+
+if ($CMAKE_TOOLCHAIN_FILE STREQUAL "")
+	target_link_directories(${PROJ} PRIVATE
+		${CMAKE_BINARY_DIR}
+		/usr/lib/x86_64-linux-gnu/ #for libdl.so & libusb.so host builds
+		)
+else()
+	target_link_directories(${PROJ} PRIVATE
+		${CMAKE_BINARY_DIR}
+		${CMAKE_SYSROOT}/usr/lib/ #for libdl.so & libusb.so host builds
+		)
+endif()
+
 target_link_libraries(edgetpu
-    tensorflow-lite
-    dl
-    usb
-    udev
-    )
+	tensorflow-lite
+	dl
+	usb
+	udev
+	)
