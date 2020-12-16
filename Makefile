@@ -91,7 +91,8 @@ endif
         deb-arm64 \
         clean
 
-libedgetpu: libedgetpu-direct libedgetpu-throttled
+#libedgetpu: libedgetpu-direct libedgetpu-throttled
+libedgetpu: libedgetpu-direct
 
 libedgetpu-direct:
 	bazel build $(BAZEL_BUILD_FLAGS) $(BAZEL_BUILD_TARGET)

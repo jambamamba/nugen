@@ -32,7 +32,7 @@ DARWIN_OPT_LINKOPTS = []
 LINUX_COPTS = []
 LINUX_LINKOPTS = [
     #"-l:libusb-1.0.so",
-    "-L./libedgetpu/libusb/build",
+    "-L./libusb/build",
     "-l:libusb.so",
 ]
 LINUX_OPT_LINKOPTS = [

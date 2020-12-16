@@ -61,7 +61,7 @@ def _libusb_impl(ctx):
     if lower_name.startswith("linux"):
         #path = "/usr/include"
         #path = "/home/dev/oosman/work.git/tensorflow.osm/nugen/libedgetpu/libusb"
-        path = str(ctx.path(Label("@//:WORKSPACE"))) + "/../libusb"
+        path = str(ctx.path(Label("@//:WORKSPACE"))) + "/../../libusb"
         build_file_content = """
 cc_library(
   name = "headers",
