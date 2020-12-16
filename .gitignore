@@ -2,6 +2,4 @@ bazel-*
 out/
 CMakeLists.txt.user
 build*
-libusb
 tensorflow
-
