@@ -50,7 +50,8 @@ endif
 
 #osm
 ifeq ($(CPU), rpi)
-BAZEL_BUILD_FLAGS_Linux += --verbose_failures --linkopt=-L/home/dev/oosman/pi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/lib --linkopt=-L/home/dev/oosman/.leila/lib/libusb/buildpi/
+#PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/pi make
+BAZEL_BUILD_FLAGS_Linux += --verbose_failures --linkopt=-L$(PI_TOOLCHAIN_ROOT_DIR)/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/lib --linkopt=-L$(shell pwd)/../libusb/buildpi/
 endif
 
 # Darwin-specific parameters
@@ -97,7 +98,8 @@ endif
         deb-arm64 \
         clean
 
-libedgetpu: libedgetpu-direct libedgetpu-throttled
+#libedgetpu: libedgetpu-direct libedgetpu-throttled
+libedgetpu: libedgetpu-direct
 
 libedgetpu-direct:
 	bazel build $(BAZEL_BUILD_FLAGS) $(BAZEL_BUILD_TARGET)
