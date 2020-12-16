@@ -136,7 +136,7 @@ target_include_directories(${PROJ} PRIVATE
     ./bazel-build/external/flatbuffers/src/_virtual_includes/flatbuffers/
     ./bazel-build/execroot/libedgetpu/bazel-out/k8-opt/bin/
     ./tensorflow/
-    ./libusb/
+    ../libusb/
     ${CMAKE_BINARY_DIR}/abseil-cpp
 #    ${CMAKE_SOURCE_DIR}/
 #    ${CMAKE_SOURCE_DIR}/include
