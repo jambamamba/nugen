@@ -4,6 +4,8 @@ set -xe
 export CC=/usr/bin/gcc
 export CXX=/usr/bin/g++
 
+PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/pi
+
 if [ ! -d libusb ]; then
    git clone https://github.com/jambamamba/libusb.git
 fi
@@ -19,12 +21,23 @@ fi
 
 pushd libusb
 	git checkout x86_64
-	./autogen.sh
+	if [ ! -f config.h ]; then 
+		./autogen.sh
+	fi
 	mkdir -p build
 	pushd build
 		cmake ..
 		make -j$(getconf _NPROCESSORS_ONLN)
 	popd
+	
+	if [ -d $PI_TOOLCHAIN_ROOT_DIR ]; then
+	mkdir -p buildpi
+	pushd buildpi
+		cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+		make -j$(getconf _NPROCESSORS_ONLN)
+	popd
+	fi
+	
 popd
 
 pushd libedgetpu
@@ -38,10 +51,18 @@ pushd libedgetpu
 popd
 
 mkdir -p build
-pushd build
-cmake ..
-make -j$(getconf _NPROCESSORS_ONLN)
+	pushd build
+	cmake ..
+	make -j$(getconf _NPROCESSORS_ONLN)
 popd
+
+if [ -d $PI_TOOLCHAIN_ROOT_DIR ]; then
+mkdir -p buildpi
+	pushd buildpi
+	cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+	make -j$(getconf _NPROCESSORS_ONLN)
+popd
+fi
 
 if [ ! -f /tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite ]; then
    pushd /tmp
@@ -49,4 +70,22 @@ if [ ! -f /tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite ]; then
    popd
 fi
 
-./build/minimal
+if [ -d $PI_TOOLCHAIN_ROOT_DIR ]; then
+	mkdir -p ./buildpi/stripped
+	cp -f ./buildpi/libedgetpu/libedgetpu.so ./buildpi/stripped/
+	cp -f ./buildpi/libedgetpu/libusb/libusb.so ./buildpi/stripped/
+	cp -f ./buildpi/minimal ./buildpi/stripped/
+	chrpath -r '$ORIGIN/.' ./buildpi/stripped/minimal
+
+	$PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/minimal
+	$PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libedgetpu.so
+	$PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libusb.so
+
+	#scp ./buildpi/stripped/* pi@192.168.1.26:/tmp
+	#scp /tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite pi@192.168.1.26:/tmp/
+	
+	file ./buildpi/minimal | cowsay
+else
+	file ./build/minimal | cowsay
+fi
+

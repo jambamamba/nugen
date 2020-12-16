@@ -24,6 +24,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_subdirectory(libusb)
 add_subdirectory(libedgetpu)
 
+set(CMAKE_INSTALL_RPATH "$ORIGIN/.")
 add_executable(${PROJ}
     main.cc
 )
