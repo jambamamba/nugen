@@ -73,7 +73,7 @@ fi
 if [ -d $PI_TOOLCHAIN_ROOT_DIR ]; then
 	mkdir -p ./buildpi/stripped
 	cp -f ./buildpi/libedgetpu/libedgetpu.so ./buildpi/stripped/
-	cp -f ./buildpi/libedgetpu/libusb/libusb.so ./buildpi/stripped/
+	cp -f ./buildpi/libusb/libusb.so ./buildpi/stripped/
 	cp -f ./buildpi/minimal ./buildpi/stripped/
 	chrpath -r '$ORIGIN/.' ./buildpi/stripped/minimal
 
