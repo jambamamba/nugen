@@ -22,6 +22,16 @@ cd edgetpu-minimal
 ./build.sh
 ```
 
+### Build for Raspiberry Pi Zero
+
+First we build the cross-compiler toolchain using this script, then run the build.sh script:
+
+```bash
+~/.scripts/build-crosstools-ng.sh 
+cd edgetpu-minimal 
+./build.sh
+```
+
 ### Run
 
 If all goes well, the build.sh will generate the executable in the build folder. You can run it like this:
