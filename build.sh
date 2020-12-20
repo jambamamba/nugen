@@ -4,11 +4,7 @@ set -xe
 export CC=/usr/bin/gcc
 export CXX=/usr/bin/g++
 
-PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/pi
-
-if [ ! -d $PI_TOOLCHAIN_ROOT_DIR ]; then
-	~/.scripts/build-crosstools-ng.sh 
-fi
+PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
 
 if [ ! -d libusb ]; then
    git clone https://github.com/jambamamba/libusb.git
