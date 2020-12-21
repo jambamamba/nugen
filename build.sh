@@ -43,15 +43,15 @@ function buildlibusb()
 			fi
 			mkdir -p build
 			pushd build
-				rm -fr *
+                                if [ "$clean" == "true" ]; then rm -fr *;fi
 				cmake ..
 				make -j$(getconf _NPROCESSORS_ONLN)
 			popd
 		elif [ "$arch" == "rpi" ]; then
 			mkdir -p buildpi
 			pushd buildpi
-				rm -fr *
-				cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+                                if [ "$clean" == "true" ]; then rm -fr *;fi
+                                cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
 				make -j$(getconf _NPROCESSORS_ONLN)
 			popd
 		fi
@@ -73,7 +73,7 @@ function buildlibedgetpu()
 		if [ ! -d tensorflow ]; then ln -s ../tensorflow tensorflow; fi
                 local BAZEL_CACHE_DIR=${HOME}/${DOCKERUSER}/.leila/cache/.bazel
                 mkdir -p $BAZEL_CACHE_DIR
-                rm -fr $BAZEL_CACHE_DIR/*
+                if [ "$clean" == "true" ]; then rm -fr $BAZEL_CACHE_DIR/*;fi
                 TEST_TMPDIR=$BAZEL_CACHE_DIR PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} make
 		rm -f bazel-build
                 bazelbuild=$(TEST_TMPDIR=$BAZEL_CACHE_DIR bazel info --experimental_repo_remote_exec 2>/dev/null | grep "execution_root:" | cut -d " " -f 2 | xargs dirname | xargs dirname)
@@ -89,14 +89,14 @@ function buildProject()
 	if [ "$arch" == "host" ]; then
 		mkdir -p build
 		pushd build
-			rm -fr *
+                        if [ "$clean" == "true" ]; then rm -fr *;fi
 			cmake ..
 			make -j$(getconf _NPROCESSORS_ONLN)
 		popd
 	elif [ "$arch" == "rpi" ]; then
 		mkdir -p buildpi
 			pushd buildpi
-			rm -fr *
+                        if [ "$clean" == "true" ]; then rm -fr *;fi
 			cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
 			make -j$(getconf _NPROCESSORS_ONLN)
 		popd
@@ -160,14 +160,17 @@ function main()
 	fi
 
 	PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
-	cloneRepos
-	buildlibusb arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR}
-	buildlibedgetpu arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR}
-	buildProject arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR}
+        cloneRepos clean=$clean
+        buildlibusb arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
+        buildlibedgetpu arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
+        buildProject arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
 	downloadTfModel
 	stripCrossCompiledBinaries
 	showResult arch=$arch 
 }
 
 main "$@"
+
+# ./build.sh arch=host clean=true|false #false is default
+# ./build.sh arch=rpi clean=true|false #false is default
 
