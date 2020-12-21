@@ -47,6 +47,7 @@ else()
 		${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/rpi/
 		${CMAKE_SOURCE_DIR}/libedgetpu/libusb/buildpi/
 		${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
+		${CMAKE_SOURCE_DIR}/lib/ #for libudev.so
 		)
 endif()
 
