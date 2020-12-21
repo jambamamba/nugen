@@ -65,6 +65,9 @@ CPP_VERSION = "c++11" #osm "%{cpp_version}%"
 # gcc -dumpversion | cut -f1 -d.
 GCC_VERSION = 8 #osm %{gcc_version}%
 
+#PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
+PI_TOOLCHAIN_ROOT_DIR = "/home/dev/oosman/.leila/toolchains/rpi"
+
 # gcc -E -xc++ - -v
 CXX_BUILTIN_INCLUDE_DIRECTORIES = {
     "k8": [
@@ -109,20 +112,20 @@ CXX_BUILTIN_INCLUDE_DIRECTORIES = {
         "/usr/include",
     ],
     "rpi": [
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/arm-rpi-linux-gnueabihf/bits/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/backward/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/bits/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/debug/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/ext/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/asm-generic/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/asm/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/bits/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/sys/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/lib/gcc/arm-rpi-linux-gnueabihf/8.3.0/include-fixed/",
-        "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/lib/gcc/arm-rpi-linux-gnueabihf/8.3.0/",
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/arm-rpi-linux-gnueabihf/bits/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/backward/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/bits/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/debug/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/ext/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/asm-generic/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/asm/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/bits/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/sys/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/lib/gcc/arm-rpi-linux-gnueabihf/8.3.0/include-fixed/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/lib/gcc/arm-rpi-linux-gnueabihf/8.3.0/" % PI_TOOLCHAIN_ROOT_DIR,
     ],
 }
 
@@ -133,7 +136,7 @@ TOOL_PATH_PREFIX = {
     "armv7a":  "/usr/bin/arm-linux-gnueabihf-",
     "armv6":   "/tools/arm-bcm2708/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-",
     "aarch64": "/usr/bin/aarch64-linux-gnu-",
-    "rpi":     "/home/dev/oosman/.leila/toolchains/rpi/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-"
+    "rpi":     "%s/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-" % PI_TOOLCHAIN_ROOT_DIR,
 }
 
 HOST_SYSTEM_NAME = "x86_64-linux-gnu"
@@ -182,8 +185,8 @@ OPT_COMPILE_FLAGS = {
 
 def _impl(ctx):
     #todo: need to get this env variable and use it instead of hardcoded paths where ever rpi is defined above
-    #TOOLCHAIN_DIR_RPI=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
-    #ctx.os.environ.get("TOOLCHAIN_DIR_RPI", "/home/dev/oosman/.leila/toolchains/rpi") #osm
+    #PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
+    #ctx.os.environ.get("PI_TOOLCHAIN_ROOT_DIR", "/home/dev/oosman/.leila/toolchains/rpi") #osm
     unfiltered_compile_flags_feature = feature(
         name = "unfiltered_compile_flags",
         enabled = True,

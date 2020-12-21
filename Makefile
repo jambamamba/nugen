@@ -65,6 +65,7 @@ BAZEL_BUILD_FLAGS := --sandbox_debug --subcommands \
   --compilation_mode=$(COMPILATION_MODE) \
   --define darwinn_portable=1 \
   --action_env PYTHON_BIN_PATH=$(shell which $(PYTHON3)) \
+  --action_env PI_TOOLCHAIN_ROOT_DIR=$(shell env | grep PI_TOOLCHAIN_ROOT_DIR) \
   --cpu=$(CPU) \
   --embed_label='TENSORFLOW_COMMIT=$(shell grep "TENSORFLOW_COMMIT =" $(MAKEFILE_DIR)/workspace.bzl | grep -o '[0-9a-f]\{40\}')' \
   --stamp
