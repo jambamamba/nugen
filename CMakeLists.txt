@@ -148,6 +148,7 @@ if ($CMAKE_TOOLCHAIN_FILE STREQUAL "")
 else()
 	target_link_directories(${PROJ} PRIVATE
 		${CMAKE_BINARY_DIR}
+		${CMAKE_SOURCE_DIR}/lib/ #for libudev.so
 		${CMAKE_SYSROOT}/usr/lib/ #for libdl.so & libusb.so host builds
 		)
 endif()
