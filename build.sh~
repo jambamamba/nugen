@@ -176,7 +176,7 @@ function main()
 	PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
 	cloneRepos clean=$clean
 	buildlibusb arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
-	#cannot build systemd, for now use libudev.so checked into libedgetpu repo, later remove it when this is building:
+	#not working, for now use libudev.so checked in to libedgetpu repo
 	#if [ "$arch" == "rpi" ]; then
 	#	buildsystemd arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
 	#fi
