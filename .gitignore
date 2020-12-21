@@ -4,3 +4,4 @@ systemd
 tensorflow
 build
 buildpi
+CMakeLists.txt.user

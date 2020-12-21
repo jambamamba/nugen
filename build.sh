@@ -71,10 +71,12 @@ function buildlibedgetpu()
 		fi
 	
 		if [ ! -d tensorflow ]; then ln -s ../tensorflow tensorflow; fi
-		mkdir -p /tmp/.bazel
-		TEST_TMPDIR=/tmp/.bazel PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} make
+                local BAZEL_CACHE_DIR=${HOME}/${DOCKERUSER}/.leila/cache/.bazel
+                mkdir -p $BAZEL_CACHE_DIR
+                rm -fr $BAZEL_CACHE_DIR/*
+                TEST_TMPDIR=$BAZEL_CACHE_DIR PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} make
 		rm -f bazel-build
-		bazelbuild=$(TEST_TMPDIR=/tmp/.bazel bazel info --experimental_repo_remote_exec 2>/dev/null | grep "execution_root:" | cut -d " " -f 2 | xargs dirname | xargs dirname)
+                bazelbuild=$(TEST_TMPDIR=$BAZEL_CACHE_DIR bazel info --experimental_repo_remote_exec 2>/dev/null | grep "execution_root:" | cut -d " " -f 2 | xargs dirname | xargs dirname)
 		ln -sf $bazelbuild bazel-build
 	popd
 
