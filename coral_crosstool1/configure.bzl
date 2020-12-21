@@ -19,7 +19,6 @@ def _impl(repository_ctx):
         '"%s"' % repository_ctx.path(dir_label.relative("BUILD")).dirname
         for dir_label in dir_labels
     ])
-    print("#############################2")
 
     gcc_version = repository_ctx.execute(["/bin/bash", "-c", "gcc -dumpversion | cut -f1 -d."]).stdout
     bcm2708_toolchain_root = repository_ctx.os.environ.get("BCM2708_TOOLCHAIN_ROOT", "/tools/arm-bcm2708")
