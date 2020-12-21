@@ -26,6 +26,7 @@ pushd libusb
 	fi
 	mkdir -p build
 	pushd build
+		rm -fr *
 		cmake ..
 		make -j$(getconf _NPROCESSORS_ONLN)
 	popd
@@ -33,6 +34,7 @@ pushd libusb
 	if [ -d $PI_TOOLCHAIN_ROOT_DIR ]; then
 	mkdir -p buildpi
 	pushd buildpi
+		rm -fr *
 		cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
 		make -j$(getconf _NPROCESSORS_ONLN)
 	popd
@@ -52,6 +54,7 @@ popd
 
 mkdir -p build
 	pushd build
+	rm -fr *
 	cmake ..
 	make -j$(getconf _NPROCESSORS_ONLN)
 popd
@@ -59,6 +62,7 @@ popd
 if [ -d $PI_TOOLCHAIN_ROOT_DIR ]; then
 mkdir -p buildpi
 	pushd buildpi
+	rm -fr *
 	cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
 	make -j$(getconf _NPROCESSORS_ONLN)
 popd
