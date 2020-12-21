@@ -65,8 +65,8 @@ CPP_VERSION = "c++11" #osm "%{cpp_version}%"
 # gcc -dumpversion | cut -f1 -d.
 GCC_VERSION = 8 #osm %{gcc_version}%
 
-#PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
-PI_TOOLCHAIN_ROOT_DIR = "/home/dev/oosman/.leila/toolchains/rpi"
+# $DOCKERUSER is auto-magically updated by build.sh: 
+PI_TOOLCHAIN_ROOT_DIR = "/home/dev/$DOCKERUSER/.leila/toolchains/rpi"
 
 # gcc -E -xc++ - -v
 CXX_BUILTIN_INCLUDE_DIRECTORIES = {
