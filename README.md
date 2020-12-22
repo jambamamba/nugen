@@ -6,9 +6,12 @@ A minimum executable that loads libedgetpu library and is able to check the vers
 
 ### Requirement
 
-Build and install the [leila.docker image](https://github.com/jambamamba/leila.docker). Then run the container:
+Build and install the [docker.leila image](https://github.com/jambamamba/docker.leila). Then run the container:
 
 ```bash
+git clone https://github.com/jambamamba/docker.leila.git
+cd docker.leila
+./build.sh
 ./enterdocker.sh
 ```
 password is dev
@@ -18,8 +21,9 @@ password is dev
 After you enter the docker container, clone this repo and run the build.sh script:
 
 ```bash
+git clone https://github.com/jambamamba/edgetpu-minimal.git
 cd edgetpu-minimal 
-./build.sh
+./build.sh 
 ```
 
 ### Run
@@ -29,5 +33,12 @@ If all goes well, the build.sh will generate the executable in the build folder.
 ```bash
 ./build/minimal
 ```
+If you have the Coral USB accelerator plugged in, you should see this:
 
+```bash
+tf-docker ~/oosman/repos/edgetpu-minimal > ./build/minimal 
+available_tpus.size: 1
+INFO: Initialized TensorFlow Lite runtime.
+Done
+```
 
