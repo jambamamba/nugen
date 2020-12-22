@@ -36,11 +36,11 @@ function buildlibusb()
 	
 	pushd libusb
 		git checkout x86_64 #works for both host and rpi!
+		if [ ! -f config.h ]; then 
+			./autogen.sh
+		fi
 		
 		if [ "$arch" == "host" ]; then
-			if [ ! -f config.h ]; then 
-				./autogen.sh
-			fi
 			mkdir -p build
 			pushd build
                                 if [ "$clean" == "true" ]; then rm -fr *;fi
