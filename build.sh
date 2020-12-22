@@ -85,8 +85,8 @@ function buildlibedgetpu()
                 mkdir -p $BAZEL_CACHE_DIR
                 if [ "$clean" == "true" ]; then rm -fr $BAZEL_CACHE_DIR/*;fi
                 
-                git checkout -f coral_crosstool1/cc_toolchain_config.bzl
-                sed -i "s/\$DOCKERUSER/$DOCKERUSER/gi" coral_crosstool1/cc_toolchain_config.bzl
+                #git checkout -f coral_crosstool1/cc_toolchain_config.bzl
+                #sed -i "s/\$DOCKERUSER/$DOCKERUSER/gi" coral_crosstool1/cc_toolchain_config.bzl
                 TEST_TMPDIR=$BAZEL_CACHE_DIR PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} make
                 
                 rm -f bazel-build
@@ -131,21 +131,20 @@ function downloadTfModel()
 
 function stripCrossCompiledBinaries()
 {
-	parseArgs "$@"
+    parseArgs "$@"
 	
-		mkdir -p ./buildpi/stripped
-		cp -f ./buildpi/libedgetpu/libedgetpu.so ./buildpi/stripped/
-		cp -f ./buildpi/libusb/libusb.so ./buildpi/stripped/
-		cp -f ./buildpi/minimal ./buildpi/stripped/
-		chrpath -r '$ORIGIN/.' ./buildpi/stripped/minimal
+    mkdir -p ./buildpi/stripped
+    cp -f ./buildpi/libedgetpu/libedgetpu.so ./buildpi/stripped/
+    cp -f ./buildpi/libusb/libusb.so ./buildpi/stripped/
+    cp -f ./buildpi/minimal ./buildpi/stripped/
+    chrpath -r '$ORIGIN/.' ./buildpi/stripped/minimal
 
-		$PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/minimal
-		$PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libedgetpu.so
-		$PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libusb.so
+    $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/minimal
+    $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libedgetpu.so
+    $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libusb.so
 
-		#scp ./buildpi/stripped/* pi@192.168.1.26:/tmp
-		#scp /tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite pi@192.168.1.26:/tmp/
-	fi
+    #scp ./buildpi/stripped/* pi@192.168.1.26:/tmp
+    #scp /tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite pi@192.168.1.26:/tmp/
 }
 
 function showResult()
