@@ -42,3 +42,31 @@ INFO: Initialized TensorFlow Lite runtime.
 Done
 ```
 
+### Cross Compile for Raspberry Pi Zero
+
+First build the Raspberry Pi Zero toolchain
+
+```bash
+git clone https://github.com/jambamamba/crosstool-ng.git
+cd crosstool-ng
+git checkout raspi0
+./build.sh
+```
+
+This can take some time, go take a long shower meanwhile, you haven't done it for a while, and you don't smell so good!
+
+```bash
+cd edgetpu-minimal 
+./build.sh arch=rpi
+```
+
+### Clean builds
+
+```bash
+./build.sh clean=true arch=host
+./build.sh clean=true arch=rpi
+```
+
+
+
+
