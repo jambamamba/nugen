@@ -22,6 +22,12 @@ tf_workspace(tf_repo_name = "org_tensorflow")
 #load("@coral_crosstool//:configure.bzl", "cc_crosstool")
 #cc_crosstool(name = "crosstool")
 
+##########################################################################
 local_repository(name = 'coral_crosstool1', path = 'coral_crosstool1')
+
+load("@coral_crosstool1//:environ.bzl", "pi_toolchain_repository")
+pi_toolchain_repository(name = "pi_toolchain")
+
 load("@coral_crosstool1//:configure.bzl", "cc_crosstool1")
 cc_crosstool1(name = "crosstool")
+

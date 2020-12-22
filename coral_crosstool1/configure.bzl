@@ -14,6 +14,10 @@
 """Rules for configuring the C++ cross-toolchain."""
 
 def _impl(repository_ctx):
+    print("################ configure.bzl _impl")
+    repository_ctx.file("pi_toolchain_root.bzl", "PI_TOOLCHAIN_ROOT_DIR = \"%s\"" % \
+        repository_ctx.os.environ.get("PI_TOOLCHAIN_ROOT_DIR", "/home/dev/<DOCKERUSER>/.leila/toolchains/rpi"))
+
     dir_labels = repository_ctx.attr.additional_system_include_directories
     additional_include_dirs = ", ".join([
         '"%s"' % repository_ctx.path(dir_label.relative("BUILD")).dirname
@@ -38,6 +42,7 @@ def _impl(repository_ctx):
 cc_crosstool1 = repository_rule(
     environ = [
         "BCM2708_TOOLCHAIN_ROOT",
+        "PI_TOOLCHAIN_ROOT_DIR",
     ],
     attrs = {
         # Consult https://gcc.gnu.org/onlinedocs/gcc/C-Dialect-Options.html for
@@ -49,4 +54,4 @@ cc_crosstool1 = repository_rule(
     implementation = _impl,
     local = True,
 )
-print("#############################1")
+print("############################# configure.bzl")
