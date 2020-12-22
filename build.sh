@@ -162,14 +162,15 @@ function main()
 	parseArgs "$@"
 	
 	if [ "$arch" == "" ]; then
-		while true; do
-		    read -p "Do you wish to build for host \n(next time try ./build.sh arch=host or ./build.sh arch=rpi)? " yn
-		    case $yn in
-			[Yy]* ) arch="host"; break;;
-			[Nn]* ) arch="rpi"; break;;
-			* ) echo "Please answer yes or no.";;
-		    esac
-		done
+            arch="host"
+#            while true; do
+#                read -p "Do you wish to build for host \n(next time try ./build.sh arch=host or ./build.sh arch=rpi)? " yn
+#                case $yn in
+#                    [Yy]* ) arch="host"; break;;
+#                    [Nn]* ) arch="rpi"; break;;
+#                    * ) echo "Please answer yes or no.";;
+#                esac
+#            done
 	fi
 
 	PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
