@@ -182,9 +182,6 @@ OPT_COMPILE_FLAGS = {
 }
 
 def _impl(ctx):
-    #todo: need to get this env variable and use it instead of hardcoded paths where ever rpi is defined above
-    #PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
-    #ctx.os.environ.get("PI_TOOLCHAIN_ROOT_DIR", "/home/dev/oosman/.leila/toolchains/rpi") #osm
     unfiltered_compile_flags_feature = feature(
         name = "unfiltered_compile_flags",
         enabled = True,
