@@ -17,10 +17,7 @@ add_subdirectory(libusb)
 add_subdirectory(libedgetpu)
 
 set(CMAKE_INSTALL_RPATH "$ORIGIN/.")
-add_executable(${PROJ}
-    main.cc
-)
-target_include_directories(${PROJ} PRIVATE
+set(INCLUDE_DIRS
     .
     libedgetpu/
     libedgetpu/tflite/public/
@@ -28,23 +25,46 @@ target_include_directories(${PROJ} PRIVATE
     libedgetpu/bazel-libedgetpu/bazel-out/k8-opt/bin/external/flatbuffers/src/_virtual_includes/flatbuffers/
     )
 if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
-	target_link_directories(${PROJ} PRIVATE
-		${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/k8/
-		${CMAKE_SOURCE_DIR}/libedgetpu/libusb/build/
-		${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
-		/lib/x86_64-linux-gnu/
-		)
+    set(LINK_DIRS
+        ${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/k8/
+        ${CMAKE_SOURCE_DIR}/libedgetpu/libusb/build/
+        ${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
+        /lib/x86_64-linux-gnu/
+    )
 else()
-	target_link_directories(${PROJ} PRIVATE
-		${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/rpi/
-		${CMAKE_SOURCE_DIR}/libedgetpu/libusb/buildpi/
-		${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
-                ${CMAKE_SOURCE_DIR}/lib/ #for libudev.so
-		)
+    set(LINK_DIRS
+        ${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/rpi/
+        ${CMAKE_SOURCE_DIR}/libedgetpu/libusb/buildpi/
+        ${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
+        ${CMAKE_SOURCE_DIR}/lib/ #for libudev.so
+    )
 endif()
 
+##########################################################################
+add_executable(${PROJ} main.cc)
+target_include_directories(${PROJ} PRIVATE ${INCLUDE_DIRS})
+target_link_directories(${PROJ} PRIVATE ${LINK_DIRS})
 target_link_libraries(${PROJ}
     usb
     udev
     edgetpu
 )
+
+##########################################################################
+add_executable(example1
+    example/main.cc
+    example/EdgeTpuInterpreterBuilder.cpp
+    example/EdgeTpuInterpreterBuilder.h
+    example/InterpreterBuilderInterface.h
+    example/InterpreterBuilderInterface.cpp
+    example/TfLiteInterpreterBuilder.cpp
+    example/TfLiteInterpreterBuilder.h
+)
+target_include_directories(example1 PRIVATE ${INCLUDE_DIRS})
+target_link_directories(example1 PRIVATE ${LINK_DIRS})
+target_link_libraries(example1
+    usb
+    udev
+    edgetpu
+)
+

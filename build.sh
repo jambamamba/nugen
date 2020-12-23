@@ -126,11 +126,17 @@ function downloadTfModel()
            mkdir -p models
            pushd models
                wget https://github.com/google-coral/edgetpu/raw/master/test_data/mobilenet_v1_1.0_224_quant_edgetpu.tflite
-               local MODELS_DIR=${PWD}
+               cp -f mobilenet_v1_1.0_224_quant_edgetpu.tflite /tmp
+
+               wget https://storage.googleapis.com/download.tensorflow.org/models/mobilenet_v1_2018_02_22/mobilenet_v1_1.0_224.tgz
+               tar -zxvf mobilenet_v1_1.0_224.tgz ./mobilenet_v1_1.0_224.tflite
+               rm -f mobilenet_v1_1.0_224.tgz
+               cp -f mobilenet_v1_1.0_224.tflite /tmp
+
+               wget https://storage.googleapis.com/download.tensorflow.org/models/mobilenet_v1_1.0_224_frozen.tgz
+               tar -zxvf mobilenet_v1_1.0_224_frozen.tgz mobilenet_v1_1.0_224/labels.txt
+               cp -f labels.txt /tmp
 	   popd
-           pushd /tmp
-               ln -sf ${MODELS_DIR}/mobilenet_v1_1.0_224_quant_edgetpu.tflite mobilenet_v1_1.0_224_quant_edgetpu.tflite
-           popd
 	fi
 }
 
