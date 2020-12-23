@@ -1,11 +1,3 @@
-#mkdir buildPi
-#cd buildPi
-#cmake -DCMAKE_TOOLCHAIN_FILE=/home/dev/oosman/pi/Toolchain-RaspberryPi.cmake ../
-#make VERBOSE=1 -j8
-#https://www.pyimagesearch.com/2019/04/22/getting-started-with-google-corals-tpu-usb-accelerator/
-#on raspi0: sudo apt-get install python3-edgetpu
-#https://coral.ai/models/
-
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 set(PROJ minimal)
@@ -35,7 +27,7 @@ target_include_directories(${PROJ} PRIVATE
     libedgetpu/tensorflow/
     libedgetpu/bazel-libedgetpu/bazel-out/k8-opt/bin/external/flatbuffers/src/_virtual_includes/flatbuffers/
     )
-if ($CMAKE_TOOLCHAIN_FILE STREQUAL "")
+if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
 	target_link_directories(${PROJ} PRIVATE
 		${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/k8/
 		${CMAKE_SOURCE_DIR}/libedgetpu/libusb/build/
