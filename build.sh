@@ -122,10 +122,15 @@ function buildProject()
 
 function downloadTfModel()
 {
-	if [ ! -f /tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite ]; then
-	   pushd /tmp
-	   wget https://github.com/google-coral/edgetpu/raw/master/test_data/mobilenet_v1_1.0_224_quant_edgetpu.tflite
+        if [ ! -f models/mobilenet_v1_1.0_224_quant_edgetpu.tflite ]; then
+           mkdir -p models
+           pushd models
+               wget https://github.com/google-coral/edgetpu/raw/master/test_data/mobilenet_v1_1.0_224_quant_edgetpu.tflite
+               local MODELS_DIR=${PWD}
 	   popd
+           pushd /tmp
+               ln -sf ${MODELS_DIR}/mobilenet_v1_1.0_224_quant_edgetpu.tflite mobilenet_v1_1.0_224_quant_edgetpu.tflite
+           popd
 	fi
 }
 
