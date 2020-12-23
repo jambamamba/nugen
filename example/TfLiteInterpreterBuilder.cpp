@@ -14,7 +14,6 @@ TfLiteInterpreterBuilder::TfLiteInterpreterBuilder(const std::string &model_path
 
 std::unique_ptr<tflite::Interpreter> TfLiteInterpreterBuilder::BuildInterpreter()
 {
-    model_path_ = "/home/dev/oosman/repos/edgetpu-minimal/models/mobilenet_v1_0.25_128_quant.tflite";
     model_ = tflite::FlatBufferModel::BuildFromFile(model_path_.c_str());
 
     tflite::ops::builtin::BuiltinOpResolver resolver;

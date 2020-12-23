@@ -12,62 +12,6 @@
 #include "EdgeTpuInterpreterBuilder.h"
 #include "TfLiteInterpreterBuilder.h"
 
-namespace  {
-std::unique_ptr<tflite::Interpreter> BuildEdgeTpuInterpreter(
-    const tflite::FlatBufferModel& model,
-    edgetpu::EdgeTpuContext* edgetpu_context)
-{
-  tflite::ops::builtin::BuiltinOpResolver resolver;
-  resolver.AddCustom(edgetpu::kCustomOp, edgetpu::RegisterCustomOp());
-  std::unique_ptr<tflite::Interpreter> interpreter;
-  if (tflite::InterpreterBuilder(model, resolver)(&interpreter) != kTfLiteOk) {
-    std::cerr << "Failed to build interpreter." << std::endl;
-  }
-  // Bind given context with interpreter.
-  interpreter->SetExternalContext(kTfLiteEdgeTpuContext, edgetpu_context);
-  interpreter->SetNumThreads(1);
-  if (interpreter->AllocateTensors() != kTfLiteOk) {
-    std::cerr << "Failed to allocate tensors." << std::endl;
-  }
-  return interpreter;
-}
-std::unique_ptr<tflite::Interpreter> BuildEdgeTpuInterpreter()
-{
-    const std::string model_path = "/tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite";
-    std::unique_ptr<tflite::FlatBufferModel> model =
-            tflite::FlatBufferModel::BuildFromFile(model_path.c_str());
-    std::shared_ptr<edgetpu::EdgeTpuContext> edgetpu_context =
-            edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice();
-    if(!edgetpu_context) {
-        std::cerr << "Failed to open USB device." << std::endl;
-        return std::unique_ptr<tflite::Interpreter>();
-    }
-    return BuildEdgeTpuInterpreter(*model, edgetpu_context.get());
-}
-std::unique_ptr<tflite::Interpreter> BuildTfLiteInterpreter(
-    const tflite::FlatBufferModel& model)
-{
-  tflite::ops::builtin::BuiltinOpResolver resolver;
-  std::unique_ptr<tflite::Interpreter> interpreter;
-  if (tflite::InterpreterBuilder(model, resolver)(&interpreter) != kTfLiteOk) {
-    std::cerr << "Failed to build interpreter." << std::endl;
-  }
-  // Bind given context with interpreter.
-  interpreter->SetNumThreads(1);
-  if (interpreter->AllocateTensors() != kTfLiteOk) {
-    std::cerr << "Failed to allocate tensors." << std::endl;
-  }
-  return interpreter;
-}
-std::unique_ptr<tflite::Interpreter> BuildTfLiteInterpreter()
-{
-    const std::string model_path = "/home/dev/oosman/repos/edgetpu-minimal/models/mobilenet_v1_0.25_128_quant.tflite";
-    std::unique_ptr<tflite::FlatBufferModel> model =
-            tflite::FlatBufferModel::BuildFromFile(model_path.c_str());
-    return BuildTfLiteInterpreter(*model);
-}
-}//namespace
-
 int main(int argc, char**argv)
 {
     const auto& available_tpus = edgetpu::EdgeTpuManager::GetSingleton()->EnumerateEdgeTpu();

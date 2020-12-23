@@ -67,6 +67,12 @@ cd edgetpu-minimal
 ./build.sh clean=true arch=rpi
 ```
 
+### Download TensorFlow Models
 
+```bash
+./build.sh download=models
+```
+
+Files and labels are copied to /tmp directory. The code examples reference the /tmp for these files.
 
 
