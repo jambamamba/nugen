@@ -53,6 +53,10 @@ target_link_libraries(${PROJ}
 ##########################################################################
 add_executable(example1
     example/main.cc
+    example/adapter.cc
+    example/adapter.h
+#    example/tflite_utils.cc
+#    example/tflite_utils.h
     example/EdgeTpuInterpreterBuilder.cpp
     example/EdgeTpuInterpreterBuilder.h
     example/InterpreterBuilderInterface.h
