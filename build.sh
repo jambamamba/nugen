@@ -120,31 +120,6 @@ function buildProject()
 	fi
 }
 
-function downloadTfModels()
-{
-       mkdir -p models
-       pushd models
-           if [ ! -f "mobilenet_v1_1.0_224_quant_edgetpu.tflite" ]; then
-              wget https://github.com/google-coral/edgetpu/raw/master/test_data/mobilenet_v1_1.0_224_quant_edgetpu.tflite
-           fi
-           cp -f mobilenet_v1_1.0_224_quant_edgetpu.tflite /tmp
-
-           if [ ! -f "mobilenet_v1_1.0_224.tgz" ]; then
-              wget https://storage.googleapis.com/download.tensorflow.org/models/mobilenet_v1_2018_02_22/mobilenet_v1_1.0_224.tgz
-           fi
-           tar -zxvf mobilenet_v1_1.0_224.tgz ./mobilenet_v1_1.0_224.tflite
-           cp -f mobilenet_v1_1.0_224.tflite /tmp
-
-           if [ ! -f "mobilenet_v1_1.0_224_frozen.tgz" ]; then
-             wget https://storage.googleapis.com/download.tensorflow.org/models/mobilenet_v1_1.0_224_frozen.tgz
-           fi
-           if [ ! -d "mobilenet_v1_1.0_224" ]; then
-             tar -zxvf mobilenet_v1_1.0_224_frozen.tgz mobilenet_v1_1.0_224/labels.txt
-           fi
-           cp -f mobilenet_v1_1.0_224/labels.txt /tmp
-       popd
-}
-
 function stripCrossCompiledBinaries()
 {
     parseArgs "$@"
@@ -177,11 +152,6 @@ function main()
 {
 	parseArgs "$@"
 
-        if [ "$download" == "models" ]; then
-            downloadTfModels
-            return 0
-        fi
-	
 	if [ "$arch" == "" ]; then
             arch="host"
 #            while true; do
@@ -203,7 +173,6 @@ function main()
 	#fi
 	buildlibedgetpu arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
 	buildProject arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
-        downloadTfModels
 	if [ "$arch" == "rpi" ]; then
 		stripCrossCompiledBinaries
 	fi
@@ -214,5 +183,4 @@ main "$@"
 
 # ./build.sh arch=host clean=true|false #false is default
 # ./build.sh arch=rpi clean=true|false #false is default
-# ./build.sh download=models
 

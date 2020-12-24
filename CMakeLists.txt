@@ -12,7 +12,6 @@ set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-
 add_subdirectory(libusb)
 add_subdirectory(libedgetpu)
 
@@ -51,7 +50,7 @@ target_link_libraries(${PROJ}
 )
 
 ##########################################################################
-add_executable(example1
+add_executable(classify
     example/main.cc
     example/adapter.cc
     example/adapter.h
@@ -64,11 +63,11 @@ add_executable(example1
     example/TfLiteInterpreterBuilder.cpp
     example/TfLiteInterpreterBuilder.h
 )
-target_include_directories(example1 PRIVATE ${INCLUDE_DIRS})
-target_link_directories(example1 PRIVATE ${LINK_DIRS})
-target_link_libraries(example1
+target_include_directories(classify PRIVATE ${INCLUDE_DIRS})
+target_link_directories(classify PRIVATE ${LINK_DIRS})
+target_link_libraries(classify
     usb
     udev
     edgetpu
 )
-
+configure_file("${CMAKE_SOURCE_DIR}/download-models.sh" "${CMAKE_BINARY_DIR}/download-models.sh" COPYONLY)
