@@ -23,8 +23,14 @@
 #include "TfLiteInterpreterBuilder.h"
 
 namespace  {
+void DownloadModels()
+{
+    system("/bin/bash -c \"./download-models.sh\"");
+}
 std::unordered_map<int, std::string> LoadLabels(const std::string& file_path)
 {
+  DownloadModels();
+
   std::unordered_map<int, std::string> labels;
   std::ifstream file(file_path.c_str());
   if(!file)
@@ -44,16 +50,11 @@ std::unordered_map<int, std::string> LoadLabels(const std::string& file_path)
 
   return labels;
 }
-void DownloadModels()
-{
-    system("/bin/bash -c \"./download-models.sh\"");
-}
 }//namespace
 
 TfLiteInterpreter::TfLiteInterpreter()
     : labels_(LoadLabels("/tmp/ImageNetLabels.txt"))
 {
-    DownloadModels();
 }
 
 TfLiteInterpreter::~TfLiteInterpreter()
