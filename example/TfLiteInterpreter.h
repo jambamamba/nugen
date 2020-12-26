@@ -30,7 +30,7 @@ public:
 
     bool Create();
     bool LoadImage(const std::string &rgb_file) const;
-    Result Invoke() const;
+    Result Inference() const;
 
 protected:
     std::unordered_map<int, std::string> labels_;

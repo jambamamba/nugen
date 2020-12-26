@@ -106,7 +106,7 @@ bool TfLiteInterpreter::LoadImage(const std::string &rgb_file) const
     return true;
 }
 
-TfLiteInterpreter::Result TfLiteInterpreter::Invoke() const
+TfLiteInterpreter::Result TfLiteInterpreter::Inference() const
 {
     auto start = std::chrono::steady_clock::now();
     if(interpreter_->Invoke() != kTfLiteOk)

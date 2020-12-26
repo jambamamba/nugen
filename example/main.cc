@@ -18,7 +18,7 @@ int main(int argc, char**argv)
         return -1;
     }
 
-    auto res = interpreter.Invoke();
+    auto res = interpreter.Inference();
     std::cout << "Inferenced class \"" << res.class_
               << "\" in "
               << res.milliseconds_
