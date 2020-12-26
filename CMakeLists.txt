@@ -1,11 +1,5 @@
 #mkdir buildPi
 #cd buildPi
-#cmake -DCMAKE_TOOLCHAIN_FILE=/home/dev/oosman/pi/Toolchain-RaspberryPi.cmake ../
-#make VERBOSE=1 -j8
-#https://www.pyimagesearch.com/2019/04/22/getting-started-with-google-corals-tpu-usb-accelerator/
-#on raspi0: sudo apt-get install python3-edgetpu
-#https://coral.ai/models/
-
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 set(PROJ edgetpu)
@@ -141,13 +135,13 @@ target_include_directories(${PROJ} PRIVATE
     ${CMAKE_BINARY_DIR}/abseil-cpp
     )
 
-if ($CMAKE_TOOLCHAIN_FILE STREQUAL "")
+if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
 	target_link_directories(${PROJ} PRIVATE
 		${CMAKE_BINARY_DIR}
 		/usr/lib/x86_64-linux-gnu/ #for libdl.so & libusb.so host builds
 		)
 else()
-	target_link_directories(${PROJ} PRIVATE
+        target_link_directories(${PROJ} PRIVATE
 		${CMAKE_BINARY_DIR}
 		${CMAKE_SOURCE_DIR}/lib/ #for libudev.so
 		${CMAKE_SYSROOT}/usr/lib/ #for libdl.so & libusb.so host builds
