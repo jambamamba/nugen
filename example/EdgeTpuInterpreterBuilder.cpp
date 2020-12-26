@@ -15,8 +15,8 @@ EdgeTpuInterpreterBuilder::EdgeTpuInterpreterBuilder(const std::string &model_pa
 
 std::unique_ptr<tflite::Interpreter> EdgeTpuInterpreterBuilder::BuildInterpreter()
 {
-    model_path_ = "/tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite";
     model_ = tflite::FlatBufferModel::BuildFromFile(model_path_.c_str());
+
     std::shared_ptr<edgetpu::EdgeTpuContext> edgetpu_context =
             edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice();
     if(!edgetpu_context) {

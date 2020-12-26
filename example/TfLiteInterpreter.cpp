@@ -66,11 +66,14 @@ bool TfLiteInterpreter::Create()
     const auto& available_tpus = edgetpu::EdgeTpuManager::GetSingleton()->EnumerateEdgeTpu();
     std::cout << "available_tpus.size: " << available_tpus.size() << "\n";
 
+    const std::string model_file = available_tpus.size() ?
+                                        "/tmp/mobilenet_v2_1.0_224_quant_edgetpu.tflite":
+                                        "/tmp/mobilenet_v2_1.0_224_quant.tflite";
     interpreter_builder_ = (available_tpus.size() > 0) ?
                 (std::unique_ptr<InterpreterBuilderInterface>)
-                std::make_unique<EdgeTpuInterpreterBuilder>("/tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite"):
+                std::make_unique<EdgeTpuInterpreterBuilder>(model_file):
                 (std::unique_ptr<InterpreterBuilderInterface>)
-                std::make_unique<TfLiteInterpreterBuilder>("/tmp/mobilenet_v2_1.0_224_quant.tflite");
+                std::make_unique<TfLiteInterpreterBuilder>(model_file);
 
     interpreter_ = interpreter_builder_->BuildInterpreter();
     if(!interpreter_)

@@ -1,8 +1,9 @@
-libedgetpu
-libusb
-systemd
-tensorflow
+CMakeLists.txt.user
 build
 buildpi
-CMakeLists.txt.user
+libedgetpu
+libusb
 models
+opencv
+systemd
+tensorflow
