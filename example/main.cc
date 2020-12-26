@@ -25,6 +25,5 @@ int main(int argc, char**argv)
               << " milliseconds"
               << "\n";
 
-//    tflite::PrintInterpreterState(interpreter.get());
     return 0;
 }

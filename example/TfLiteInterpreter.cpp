@@ -115,21 +115,9 @@ TfLiteInterpreter::Result TfLiteInterpreter::Invoke() const
         exit(-1);
     }
     auto end = std::chrono::steady_clock::now();
-    auto results = coral::GetClassificationResults(*interpreter_, 0.0f, /*top_k=*/3);
+    auto results = coral::GetClassificationResults(*interpreter_, 0.0f, /*top_k=*/1);
 
-    Result ret (std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count(),
+    return Result(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count(),
                   labels_.at(results[0].id)
                 );
-//    for (auto result : results)
-//    {
-//      std::cout << "---------------------------" << std::endl;
-//      std::cout << "Score: " << result.score
-//                << ", label id: " << result.id
-//                << ", " << ret.class_
-//                << ", time elapsed: "
-//                << ret.milliseconds_
-//                << " milliseconds"
-//                << "\n";
-//    }
-    return ret;
 }
