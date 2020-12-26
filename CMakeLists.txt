@@ -51,17 +51,17 @@ target_link_libraries(${PROJ}
 
 ##########################################################################
 add_executable(classify
-    example/main.cc
-    example/adapter.cc
-    example/adapter.h
-#    example/tflite_utils.cc
-#    example/tflite_utils.h
     example/EdgeTpuInterpreterBuilder.cpp
     example/EdgeTpuInterpreterBuilder.h
-    example/InterpreterBuilderInterface.h
     example/InterpreterBuilderInterface.cpp
+    example/InterpreterBuilderInterface.h
+    example/TfLiteInterpreter.cpp
+    example/TfLiteInterpreter.h
     example/TfLiteInterpreterBuilder.cpp
     example/TfLiteInterpreterBuilder.h
+    example/adapter.cc
+    example/adapter.h
+    example/main.cc
 )
 target_include_directories(classify PRIVATE ${INCLUDE_DIRS})
 target_link_directories(classify PRIVATE ${LINK_DIRS})
