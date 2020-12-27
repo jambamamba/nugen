@@ -144,7 +144,7 @@ function buildProject()
     fi
 }
 
-function stripCrossCompiledBinaries()
+function deployToPi()
 {
     parseArgs "$@"
 	
@@ -152,14 +152,20 @@ function stripCrossCompiledBinaries()
     cp -f ./buildpi/libedgetpu/libedgetpu.so ./buildpi/stripped/
     cp -f ./buildpi/libusb/libusb.so ./buildpi/stripped/
     cp -f ./buildpi/minimal ./buildpi/stripped/
+    cp -f ./buildpi/classify ./buildpi/stripped/
     chrpath -r '$ORIGIN/.' ./buildpi/stripped/minimal
+    chrpath -r '$ORIGIN/.' ./buildpi/stripped/classify
 
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/minimal
+    $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/classify
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libedgetpu.so
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libusb.so
 
-    #scp ./buildpi/stripped/* pi@192.168.1.26:/tmp
-    #scp /tmp/mobilenet_v1_1.0_224_quant_edgetpu.tflite pi@192.168.1.26:/tmp/
+    ssh-copy-id pi@${ip}
+    rsync -uav ./buildpi/stripped/* pi@${ip}:/tmp
+    rsync -uav download-models.sh pi@${ip}:/tmp
+    rsync -uav models/cat.rgb pi@${ip}:/tmp
+    #scp /tmp/mobilenet_v2_1.0_224_quant_edgetpu.tflite pi@${IP}:/tmp/
 }
 
 function showResult()
@@ -176,6 +182,13 @@ function main()
 {
     parseArgs "$@"
 
+    PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
+
+    if [ "${deploy}" == "true" ] && [ "${ip}" != "" ]; then
+        deployToPi ip="${ip}" PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR}
+        return 0
+    fi
+
     if [ "$arch" == "" ]; then
         arch="host"
 #        while true; do
@@ -188,9 +201,9 @@ function main()
 #        done
     fi
 
-    PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
     cloneRepos clean=$clean
     buildlibusb arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
+    buildopencv arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
     #cannot build systemd, for now use libudev.so checked into libedgetpu repo, later remove it when this is building:
     #if [ "$arch" == "rpi" ]; then
     #	buildsystemd arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
@@ -207,4 +220,4 @@ main "$@"
 
 # ./build.sh arch=host clean=true|false #false is default
 # ./build.sh arch=rpi clean=true|false #false is default
-
+# ./build.sh deploy=true ip=192.168.1.26

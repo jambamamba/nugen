@@ -17,22 +17,24 @@ std::unique_ptr<tflite::Interpreter> EdgeTpuInterpreterBuilder::BuildInterpreter
 {
     model_ = tflite::FlatBufferModel::BuildFromFile(model_path_.c_str());
 
-    std::shared_ptr<edgetpu::EdgeTpuContext> edgetpu_context =
-            edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice();
-    if(!edgetpu_context) {
+    edgetpu_context_ = edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice();
+    if(!edgetpu_context_)
+    {
         std::cerr << "Failed to open USB device." << std::endl;
         return std::unique_ptr<tflite::Interpreter>();
     }
     tflite::ops::builtin::BuiltinOpResolver resolver;
     resolver.AddCustom(edgetpu::kCustomOp, edgetpu::RegisterCustomOp());
     std::unique_ptr<tflite::Interpreter> interpreter;
-    if (tflite::InterpreterBuilder(*model_.get(), resolver)(&interpreter) != kTfLiteOk) {
+    if (tflite::InterpreterBuilder(*model_.get(), resolver)(&interpreter) != kTfLiteOk)
+    {
       std::cerr << "Failed to build interpreter." << std::endl;
     }
     // Bind given context with interpreter.
-    interpreter->SetExternalContext(kTfLiteEdgeTpuContext, edgetpu_context.get());
+    interpreter->SetExternalContext(kTfLiteEdgeTpuContext, edgetpu_context_.get());
     interpreter->SetNumThreads(1);
-    if (interpreter->AllocateTensors() != kTfLiteOk) {
+    if (interpreter->AllocateTensors() != kTfLiteOk)
+    {
       std::cerr << "Failed to allocate tensors." << std::endl;
     }
     return interpreter;

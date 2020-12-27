@@ -13,7 +13,7 @@ int main(int argc, char**argv)
     {
         return -1;
     }
-    if(!interpreter.LoadImage("/home/dev/oosman/repos/edgetpu-minimal/models/cat.rgb"))
+    if(!interpreter.LoadImage("/tmp/cat.rgb"))
     {
         return -1;
     }
