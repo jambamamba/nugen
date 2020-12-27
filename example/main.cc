@@ -7,13 +7,18 @@
 
 int main(int argc, char**argv)
 {
+    if(argc != 2)
+    {
+        std::cerr << "./classify <path to 422x422 rgb file>\n";
+        return -1;
+    }
     TfLiteInterpreter interpreter;
 
     if(!interpreter.Create())
     {
         return -1;
     }
-    if(!interpreter.LoadImage("/tmp/cat.rgb"))
+    if(!interpreter.LoadImage(argv[1]))
     {
         return -1;
     }

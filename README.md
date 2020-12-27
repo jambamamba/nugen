@@ -76,3 +76,23 @@ cd edgetpu-minimal
 Files and labels are copied to /tmp directory. The code examples reference the /tmp for these files.
 
 
+### Object Classification
+
+```bash
+./build/classify cat.rgb
+```
+
+The input file (cat.rgb) must be 422 x 422 raw RGB image.
+
+You can use the convert utility to make RGB file like this:
+```bash
+convert cat.bmp -resize 224x224! cat.rgb
+```
+
+#### Output:
+```bash
+available_tpus.size: 1
+INFO: Initialized TensorFlow Lite runtime.
+Inferenced class "Persian cat" in 12 milliseconds
+```
+
