@@ -2,7 +2,6 @@
 
 #include "TfLiteInterpreter.h"
 
-//convert cat.png -resize 224x224! cat224x224.rgb
 //convert cat.png -resize 300x300! cat300x300.rgb
 
 
@@ -25,14 +24,19 @@ int main(int argc, char**argv)
     }
 
     auto res = interpreter.Inference();
-    std::cout << "Inferenced class \"" << res.class_
-              << "\" at"
-              << " (" << res.bounding_rect_.x << "," << res.bounding_rect_.y << ")=>"
-              << " (" << res.bounding_rect_.x + res.bounding_rect_.width << "," << res.bounding_rect_.y + res.bounding_rect_.height << ")"
-              << " in "
-              << res.milliseconds_
+    std::cout << "Inferenced in " << res.milliseconds_
               << " milliseconds"
               << "\n";
+    for(const auto &object: res.objects_)
+    {
+        std::cout << "class \"" << object.class_
+                  << "\", score:"
+                  << object.score_
+                  << ", at "
+                  << "(" << object.bounding_rect_.x << "," << object.bounding_rect_.y << ")=>"
+                  << "(" << object.bounding_rect_.x + object.bounding_rect_.width << "," << object.bounding_rect_.y + object.bounding_rect_.height << ")"
+                  << "\n";
+    }
 
     return 0;
 }

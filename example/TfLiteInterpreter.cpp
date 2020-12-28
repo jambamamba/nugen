@@ -190,21 +190,32 @@ TfLiteInterpreter::Result TfLiteInterpreter::Inference() const
     if(type_ == TfLiteInterpreter::Type::Classifier)
     {
         auto results = coral::GetClassificationResults(*interpreter_, 0.0f, /*top_k=*/1);
-        return Result(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count(),
-                      labels_.at(results[0].id)
-                );
+        if(results.size() < 1)
+        {
+            std::cerr << "Failed to classify image." << std::endl;
+            exit(-1);
+        }
+        std::vector<DetectedObject> objects = { {labels_.at(results[0].id), results[0].score} };
+        return Result(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count(), objects);
     }
     else if(type_ == TfLiteInterpreter::Type::Detector)
     {
-        auto results = coral::GetDetectionResults(*interpreter_, 0.0f, /*top_k=*/1);
+        auto results = coral::GetDetectionResults(*interpreter_, 0.0f, /*top_k=*/10);
+        std::vector<DetectedObject> objects;
+        for(const auto &result : results)
+        {
+            objects.push_back(DetectedObject(labels_.at(result.id), result.score,
+                          cv::Rect(
+                              cv::Point(result.bbox.xmin * meta_data_[type_].image_width_,
+                                 result.bbox.ymin * meta_data_[type_].image_height_),
+                              cv::Point(result.bbox.xmax * meta_data_[type_].image_width_,
+                                 result.bbox.ymax * meta_data_[type_].image_height_)
+                          )
+                        )
+                    );
+        }
         return Result(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count(),
-                    labels_.at(results[0].id),
-                    cv::Rect(
-                        cv::Point(results[0].bbox.xmin * meta_data_[type_].image_width_,
-                                results[0].bbox.ymin * meta_data_[type_].image_height_),
-                        cv::Point(results[0].bbox.xmax * meta_data_[type_].image_width_,
-                            results[0].bbox.ymax * meta_data_[type_].image_height_)
-                    )
+                    objects
                 );
     }
     else

@@ -20,18 +20,30 @@ public:
         Detector,
         NumTypes
     };
+    struct DetectedObject
+    {
+        std::string class_;
+        cv::Rect bounding_rect_;
+        float score_;
+
+        DetectedObject(const std::string &cls = "",
+                       float score = 0,
+                       const cv::Rect &bounding_rect = cv::Rect())
+            : class_(cls)
+            , score_(score)
+            , bounding_rect_(bounding_rect)
+        {}
+    };
+
     struct Result
     {
         int milliseconds_;
-        std::string class_;
-        cv::Rect bounding_rect_;
+        std::vector<DetectedObject> objects_;
 
         Result(int milliseconds = -1,
-               const std::string &cls = "",
-               const cv::Rect &bounding_rect = cv::Rect())
+               const std::vector<DetectedObject> &objects = std::vector<DetectedObject>())
             : milliseconds_(milliseconds)
-            , class_(cls)
-            , bounding_rect_(bounding_rect)
+            , objects_(objects)
         {}
     };
 

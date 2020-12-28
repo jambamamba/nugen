@@ -57,7 +57,7 @@ function buildlibusb()
             mkdir -p buildpi
             pushd buildpi
                     if [ "$clean" == "true" ]; then rm -fr *;fi
-                    cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+                    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
                     make -j$(getconf _NPROCESSORS_ONLN)
             popd
         fi
@@ -80,7 +80,7 @@ function buildlibcurl()
             mkdir -p buildpi
             pushd buildpi
                     if [ "$clean" == "true" ]; then rm -fr *;fi
-                    #cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+                    #cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
                     #make -j$(getconf _NPROCESSORS_ONLN)
             popd
         fi
@@ -103,7 +103,7 @@ function buildopencv()
             mkdir -p buildpi
             pushd buildpi
                     if [ "$clean" == "true" ]; then rm -fr *;fi
-                    cmake -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+                    cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
                     make -j$(getconf _NPROCESSORS_ONLN)
             popd
         fi
@@ -161,7 +161,7 @@ function buildProject()
         mkdir -p buildpi
             pushd buildpi
             if [ "$clean" == "true" ]; then rm -fr *;fi
-            cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
             make -j$(getconf _NPROCESSORS_ONLN)
         popd
     else

@@ -3,7 +3,6 @@
 #include "TfLiteInterpreter.h"
 
 //convert cat.png -resize 224x224! cat224x224.rgb
-//convert cat.png -resize 300x300! cat300x300.rgb
 
 
 int main(int argc, char**argv)
@@ -25,7 +24,7 @@ int main(int argc, char**argv)
     }
 
     auto res = interpreter.Inference();
-    std::cout << "Inferenced class \"" << res.class_
+    std::cout << "Inferenced class \"" << res.objects_.at(0).class_
               << "\" in "
               << res.milliseconds_
               << " milliseconds"
