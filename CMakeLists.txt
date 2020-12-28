@@ -22,8 +22,13 @@ set(INCLUDE_DIRS
     libedgetpu/tflite/public/
     libedgetpu/tensorflow/
     libedgetpu/bazel-libedgetpu/bazel-out/k8-opt/bin/external/flatbuffers/src/_virtual_includes/flatbuffers/
+    opencv/modules/core/include/
     )
 if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
+    set(INCLUDE_DIRS
+        ${INCLUDE_DIRS}
+        opencv/build/
+        )
     set(LINK_DIRS
         ${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/k8/
         ${CMAKE_SOURCE_DIR}/libedgetpu/libusb/build/
@@ -31,6 +36,10 @@ if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
         /lib/x86_64-linux-gnu/
     )
 else()
+    set(INCLUDE_DIRS
+        ${INCLUDE_DIRS}
+        opencv/buildpi/
+        )
     set(LINK_DIRS
         ${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/rpi/
         ${CMAKE_SOURCE_DIR}/libedgetpu/libusb/buildpi/
@@ -61,6 +70,7 @@ add_executable(classify
     example/TfLiteInterpreterBuilder.h
     example/adapter.cc
     example/adapter.h
+    example/bbox.h
     example/main.cc
 )
 target_include_directories(classify PRIVATE ${INCLUDE_DIRS})

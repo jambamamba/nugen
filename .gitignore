@@ -3,6 +3,7 @@ build
 buildpi
 libedgetpu
 libusb
+curl
 models
 opencv
 systemd

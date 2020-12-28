@@ -12,7 +12,7 @@ int main(int argc, char**argv)
         std::cerr << "./classify <path to 422x422 rgb file>\n";
         return -1;
     }
-    TfLiteInterpreter interpreter;
+    TfLiteInterpreter interpreter(TfLiteInterpreter::Type::Detector);
 
     if(!interpreter.Create())
     {

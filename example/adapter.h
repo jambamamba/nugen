@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/types/span.h"
+#include "bbox.h"
 #include "tensorflow/lite/interpreter.h"
 
 namespace coral {
@@ -15,6 +16,12 @@ namespace coral {
 struct Class {
   int id;
   float score;
+};
+
+struct Object {
+  int id;
+  float score;
+  BBox<float> bbox;
 };
 
 inline bool operator==(const Class& x, const Class& y) {
@@ -56,6 +63,8 @@ inline Class GetTopClassificationResult(
       interpreter, -std::numeric_limits<float>::infinity(), 1)[0];
 }
 
+std::vector<Object> GetDetectionResults(const tflite::Interpreter& interpreter,
+                                        float threshold, size_t top_k);
 }  // namespace coral
 
 #endif  // EDGETPU_CPP_CLASSIFICATION_ADAPTER_H_

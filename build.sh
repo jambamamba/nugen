@@ -31,6 +31,9 @@ function cloneRepos()
     if [ ! -d opencv ]; then
        git clone https://github.com/opencv/opencv.git
     fi
+    if [ ! -d curl ]; then
+       git clone https://github.com/curl/curl.git
+    fi
 }
 
 function buildlibusb()
@@ -43,6 +46,29 @@ function buildlibusb()
                 ./autogen.sh
         fi
 
+        if [ "$arch" == "host" ]; then
+            mkdir -p build
+            pushd build
+                    if [ "$clean" == "true" ]; then rm -fr *;fi
+                    cmake ..
+                    make -j$(getconf _NPROCESSORS_ONLN)
+            popd
+        elif [ "$arch" == "rpi" ]; then
+            mkdir -p buildpi
+            pushd buildpi
+                    if [ "$clean" == "true" ]; then rm -fr *;fi
+                    cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+                    make -j$(getconf _NPROCESSORS_ONLN)
+            popd
+        fi
+    popd
+}
+
+function buildlibcurl()
+{
+    parseArgs "$@"
+
+    pushd curl
         if [ "$arch" == "host" ]; then
             mkdir -p build
             pushd build
@@ -203,6 +229,7 @@ function main()
 
     cloneRepos clean=$clean
     buildlibusb arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
+    buildlibcurl arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
     buildopencv arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
     #cannot build systemd, for now use libudev.so checked into libedgetpu repo, later remove it when this is building:
     #if [ "$arch" == "rpi" ]; then
