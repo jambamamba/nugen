@@ -67,22 +67,13 @@ cd edgetpu-minimal
 ./build.sh clean=true arch=rpi
 ```
 
-### Download TensorFlow Models
-
-```bash
-./build.sh download=models
-```
-
-Files and labels are copied to /tmp directory. The code examples reference the /tmp for these files.
-
-
 ### Object Classification
 
 ```bash
-./build/classify cat.rgb
+./build/classify cat224x224.rgb
 ```
 
-The input file (cat.rgb) must be 422 x 422 raw RGB image.
+The input file (cat.rgb) must be 224 x 224 raw RGB image.
 
 You can use the convert utility to make RGB file like this:
 ```bash
@@ -95,4 +86,18 @@ available_tpus.size: 1
 INFO: Initialized TensorFlow Lite runtime.
 Inferenced class "Persian cat" in 12 milliseconds
 ```
+
+### Object Detection
+
+```bash
+./build/detect cat300x300.rgb
+```
+
+#### Output:
+```bash
+available_tpus.size: 1
+INFO: Initialized TensorFlow Lite runtime.
+Inferenced class "cat" at (1,14)=> (296,227) in 30 milliseconds
+```
+
 

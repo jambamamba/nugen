@@ -47,19 +47,8 @@ else()
         ${CMAKE_SOURCE_DIR}/lib/ #for libudev.so
     )
 endif()
-
-##########################################################################
-add_executable(${PROJ} main.cc)
-target_include_directories(${PROJ} PRIVATE ${INCLUDE_DIRS})
-target_link_directories(${PROJ} PRIVATE ${LINK_DIRS})
-target_link_libraries(${PROJ}
-    usb
-    udev
-    edgetpu
-)
-
-##########################################################################
-add_executable(classify
+set(LIBS usb udev edgetpu)
+set(SOURCES
     example/EdgeTpuInterpreterBuilder.cpp
     example/EdgeTpuInterpreterBuilder.h
     example/InterpreterBuilderInterface.cpp
@@ -71,13 +60,24 @@ add_executable(classify
     example/adapter.cc
     example/adapter.h
     example/bbox.h
-    example/main.cc
-)
+    )
+##########################################################################
+add_executable(${PROJ} main.cc)
+target_include_directories(${PROJ} PRIVATE ${INCLUDE_DIRS})
+target_link_directories(${PROJ} PRIVATE ${LINK_DIRS})
+target_link_libraries(${PROJ} PRIVATE ${LIBS})
+
+##########################################################################
+add_executable(classify ${SOURCES} example/classify.cc)
 target_include_directories(classify PRIVATE ${INCLUDE_DIRS})
 target_link_directories(classify PRIVATE ${LINK_DIRS})
-target_link_libraries(classify
-    usb
-    udev
-    edgetpu
-)
+target_link_libraries(classify PRIVATE ${LIBS})
+
+##########################################################################
+add_executable(detect ${SOURCES} example/detect.cc)
+target_include_directories(detect PRIVATE ${INCLUDE_DIRS})
+target_link_directories(detect PRIVATE ${LINK_DIRS})
+target_link_libraries(detect PRIVATE ${LIBS})
+
+##########################################################################
 configure_file("${CMAKE_SOURCE_DIR}/download-models.sh" "${CMAKE_BINARY_DIR}/download-models.sh" COPYONLY)
