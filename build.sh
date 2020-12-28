@@ -80,8 +80,8 @@ function buildlibcurl()
             mkdir -p buildpi
             pushd buildpi
                     if [ "$clean" == "true" ]; then rm -fr *;fi
-                    cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
-                    make -j$(getconf _NPROCESSORS_ONLN)
+                    #cmake -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+                    #make -j$(getconf _NPROCESSORS_ONLN)
             popd
         fi
     popd
@@ -179,11 +179,14 @@ function deployToPi()
     cp -f ./buildpi/libusb/libusb.so ./buildpi/stripped/
     cp -f ./buildpi/minimal ./buildpi/stripped/
     cp -f ./buildpi/classify ./buildpi/stripped/
+    cp -f ./buildpi/detect ./buildpi/stripped/
     chrpath -r '$ORIGIN/.' ./buildpi/stripped/minimal
     chrpath -r '$ORIGIN/.' ./buildpi/stripped/classify
+    chrpath -r '$ORIGIN/.' ./buildpi/stripped/detect
 
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/minimal
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/classify
+    $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/detect
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libedgetpu.so
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libusb.so
 
@@ -237,9 +240,6 @@ function main()
     #fi
     buildlibedgetpu arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
     buildProject arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
-    if [ "$arch" == "rpi" ]; then
-        stripCrossCompiledBinaries
-    fi
     showResult arch=$arch
 }
 
