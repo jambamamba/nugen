@@ -17,7 +17,7 @@ int main(int argc, char**argv)
         std::cerr << "./classify <path to 300x300 rgb file>\n";
         return -1;
     }
-    cv::Mat img = cv::imread("/tmp/IMG_8633.JPG");
+    cv::Mat img = cv::imread(argv[1]);
     cv::resize(img, img, cv::Size(300, 300), 0, 0, cv::INTER_CUBIC);
 
     TfLiteInterpreter interpreter(TfLiteInterpreter::Type::Detector);
