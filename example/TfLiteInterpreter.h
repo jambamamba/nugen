@@ -52,6 +52,7 @@ public:
 
     bool Create();
     bool LoadImage(const std::string &rgb_file) const;
+    bool LoadImage(const uint8_t *data, size_t sz) const;
     Result Inference() const;
 
 protected:

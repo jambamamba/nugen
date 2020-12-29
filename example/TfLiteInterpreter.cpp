@@ -178,6 +178,20 @@ bool TfLiteInterpreter::LoadImage(const std::string &rgb_file) const
     return true;
 }
 
+bool TfLiteInterpreter::LoadImage(const uint8_t *data, size_t sz) const
+{
+    auto input = interpreter_->input_tensor(0);
+    if(sz != input->bytes)
+    {
+        std::cerr << "Input file size is " << sz << " bytes, expecting size " << input->bytes << "\n";
+        exit(-1);
+        return false;
+    }
+    memcpy(input->data.data, data, input->bytes);
+
+    return true;
+}
+
 TfLiteInterpreter::Result TfLiteInterpreter::Inference() const
 {
     auto start = std::chrono::steady_clock::now();

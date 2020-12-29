@@ -180,6 +180,7 @@ function deployToPi()
     cp -f ./buildpi/minimal ./buildpi/stripped/
     cp -f ./buildpi/classify ./buildpi/stripped/
     cp -f ./buildpi/detect ./buildpi/stripped/
+    find ./opencv/buildpi -name "lib*.so.*" -exec cp -Pf -- "{}" ./buildpi/stripped/ \;
     chrpath -r '$ORIGIN/.' ./buildpi/stripped/minimal
     chrpath -r '$ORIGIN/.' ./buildpi/stripped/classify
     chrpath -r '$ORIGIN/.' ./buildpi/stripped/detect
@@ -187,8 +188,9 @@ function deployToPi()
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/minimal
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/classify
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/detect
-    $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libedgetpu.so
-    $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/libusb.so
+    for filename in ./buildpi/stripped/lib*.so; do
+        $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ${filename}
+    done
 
     ssh-copy-id pi@${ip}
     rsync -uav ./buildpi/stripped/* pi@${ip}:/tmp

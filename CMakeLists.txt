@@ -34,6 +34,7 @@ if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
         ${CMAKE_SOURCE_DIR}/libedgetpu/libusb/build/
         ${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
         /lib/x86_64-linux-gnu/
+        ${CMAKE_SOURCE_DIR}/opencv/build/lib/
     )
 else()
     set(INCLUDE_DIRS
@@ -45,6 +46,7 @@ else()
         ${CMAKE_SOURCE_DIR}/libedgetpu/libusb/buildpi/
         ${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
         ${CMAKE_SOURCE_DIR}/lib/ #for libudev.so
+        ${CMAKE_SOURCE_DIR}/opencv/buildpi/lib/
     )
 endif()
 set(LIBS usb udev edgetpu)
@@ -75,9 +77,31 @@ target_link_libraries(classify PRIVATE ${LIBS})
 
 ##########################################################################
 add_executable(detect ${SOURCES} example/detect.cc)
-target_include_directories(detect PRIVATE ${INCLUDE_DIRS})
+target_include_directories(detect PRIVATE
+    ${INCLUDE_DIRS}
+    opencv/modules/highgui/include/
+    opencv/modules/imgcodecs/include/
+    opencv/modules/imgproc/include/
+    opencv/modules/videoio/include/
+    )
 target_link_directories(detect PRIVATE ${LINK_DIRS})
-target_link_libraries(detect PRIVATE ${LIBS})
+target_link_libraries(detect PRIVATE ${LIBS}
+    opencv_video
+    opencv_objdetect
+    opencv_highgui
+    opencv_imgcodecs
+    opencv_dnn
+    opencv_imgproc
+    opencv_ml
+    opencv_calib3d
+    opencv_videoio
+    opencv_core
+    opencv_photo
+    opencv_stitching
+    opencv_features2d
+    opencv_gapi
+    opencv_flann
+    )
 
 ##########################################################################
 configure_file("${CMAKE_SOURCE_DIR}/download-models.sh" "${CMAKE_BINARY_DIR}/download-models.sh" COPYONLY)
