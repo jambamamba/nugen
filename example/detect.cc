@@ -25,7 +25,7 @@ void ShowResults(const TfLiteInterpreter::Result &&res,
                   << "(" << object.bounding_rect_.x << "," << object.bounding_rect_.y << ")=>"
                   << "(" << object.bounding_rect_.x + object.bounding_rect_.width << "," << object.bounding_rect_.y + object.bounding_rect_.height << ")"
                   << "\n";
-        int thickness=3;
+        int thickness=3;//1 when using inferenced image as original
         int lineType=8;
         int shift=0;
         if(object.score_ > .75)
@@ -38,7 +38,8 @@ void ShowResults(const TfLiteInterpreter::Result &&res,
             rect.height *= original_img.rows/inferenced_img.rows;
             cv::rectangle(original_img, rect, color, thickness, lineType, shift);
             cv::putText(original_img, object.class_ + " " + std::to_string((int)(object.score_ * 100)) + "%",
-                        rect.tl(), cv::FONT_HERSHEY_SIMPLEX, 2, color, thickness);
+                        rect.tl(), cv::FONT_HERSHEY_SIMPLEX, 2, //.2 when using inferenced image as original
+                        color, thickness);
         }
     }
 
