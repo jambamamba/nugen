@@ -8,8 +8,8 @@ Also minimal code needed to classify images and detect objects in images.
 
 We use the Google Coal Edget TPU USB accelerator on a Raspberry Pi Zero
 
-[<img style="width:300;" src="https://lh3.googleusercontent.com/vvBAqSnXyg3h9yS0JLyVehhV-e__3NFbZ6q7Ft-rEZp-9wDTVZ49yjuYJwfa4jQZ-RVnChHMr-DDC0T_fTxVyQg3iBMD-icMQooD6A=w2000-rw"/>](https://coral.ai/products/accelerator)
-[<img style="width:300;" src="https://www.raspberrypi.org/homepage-9df4b/static/1dfa03d09c1f3e446e8d936dfb92267f/ae23f/6b0defdbbf40792b64159ab8169d97162c380b2c_raspberry-pi-zero-1-1755x1080.jpg"/>](https://www.raspberrypi.org/products/raspberry-pi-zero/)
+[<img width="300" src="https://lh3.googleusercontent.com/vvBAqSnXyg3h9yS0JLyVehhV-e__3NFbZ6q7Ft-rEZp-9wDTVZ49yjuYJwfa4jQZ-RVnChHMr-DDC0T_fTxVyQg3iBMD-icMQooD6A=w2000-rw"/>](https://coral.ai/products/accelerator)
+[<img width="300" src="https://www.raspberrypi.org/homepage-9df4b/static/1dfa03d09c1f3e446e8d936dfb92267f/ae23f/6b0defdbbf40792b64159ab8169d97162c380b2c_raspberry-pi-zero-1-1755x1080.jpg"/>](https://www.raspberrypi.org/products/raspberry-pi-zero/)
 
 ### Requirement
 
