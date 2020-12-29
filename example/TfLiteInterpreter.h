@@ -35,6 +35,16 @@ public:
         {}
     };
 
+    struct ImageDimensions
+    {
+        size_t width_;
+        size_t height_;
+        ImageDimensions(size_t width, size_t height)
+            : width_(width)
+            , height_(height)
+        {}
+    };
+
     struct Result
     {
         int milliseconds_;
@@ -51,12 +61,14 @@ public:
     ~TfLiteInterpreter();
 
     bool Create();
+    ImageDimensions GetImageDimensions() const;
     bool LoadImage(const std::string &rgb_file) const;
     bool LoadImage(const uint8_t *data, size_t sz) const;
     Result Inference() const;
 
 protected:
     Type type_;
+    ImageDimensions image_dimensions_;
     std::unordered_map<int, std::string> labels_;
     std::unique_ptr<InterpreterBuilderInterface> interpreter_builder_;
     std::unique_ptr<tflite::Interpreter> interpreter_;

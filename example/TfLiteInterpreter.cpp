@@ -123,6 +123,7 @@ std::unordered_map<int, std::string> LoadLabels(TfLiteInterpreter::Type type)
 
 TfLiteInterpreter::TfLiteInterpreter(Type type)
     : type_(type)
+    , image_dimensions_(meta_data_[type].image_width_, meta_data_[type].image_height_)
     , labels_(LoadLabels(type))
 {}
 
@@ -147,6 +148,11 @@ bool TfLiteInterpreter::Create()
         return false;
     }
     return true;
+}
+
+TfLiteInterpreter::ImageDimensions TfLiteInterpreter::GetImageDimensions() const
+{
+    return image_dimensions_;
 }
 
 bool TfLiteInterpreter::LoadImage(const std::string &rgb_file) const
