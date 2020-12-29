@@ -2,7 +2,7 @@
 
 <img src="res/IMG_8633.inferenced.JPG"/>
 
-A minimum executable that loads libedgetpu library and is able to check the version of the [Coral Edge TPU](https://coral.ai/products/accelerator/) attached to a USB port.
+A minimum executable that loads libedgetpu library and is able to detect the [Coral Edge TPU](https://coral.ai/products/accelerator/) attached to a USB port.
 
 Also minimal code needed to classify images and detect objects in images.
 
