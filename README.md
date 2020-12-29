@@ -1,7 +1,7 @@
 # edgetpu-minimal
 
 [<img src="https://images-na.ssl-images-amazon.com/images/I/61Eautuke1L.__AC_SY300_SX300_QL70_FMwebp_.jpg"/>](https://github.com/jambamamba/leila.docker)
-<img src="res/IMG_8633.JPG"/>
+<img src="res/IMG_8633.inferenced.JPG"/>
 
 A minimum executable that loads libedgetpu library and is able to check the version of the [Coral Edge TPU](https://coral.ai/products/accelerator/) attached to a USB port.
 
