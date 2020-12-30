@@ -70,13 +70,7 @@ target_link_directories(${PROJ} PRIVATE ${LINK_DIRS})
 target_link_libraries(${PROJ} PRIVATE ${LIBS})
 
 ##########################################################################
-add_executable(classify ${SOURCES} example/classify.cc)
-target_include_directories(classify PRIVATE ${INCLUDE_DIRS})
-target_link_directories(classify PRIVATE ${LINK_DIRS})
-target_link_libraries(classify PRIVATE ${LIBS})
-
-##########################################################################
-add_executable(detect ${SOURCES} example/detect.cc)
+add_executable(detect ${SOURCES} example/main.cc)
 target_include_directories(detect PRIVATE
     ${INCLUDE_DIRS}
     opencv/modules/highgui/include/

@@ -11,6 +11,8 @@ We use the Google Coal Edget TPU USB accelerator on a Raspberry Pi Zero
 [<img width="300" src="https://lh3.googleusercontent.com/vvBAqSnXyg3h9yS0JLyVehhV-e__3NFbZ6q7Ft-rEZp-9wDTVZ49yjuYJwfa4jQZ-RVnChHMr-DDC0T_fTxVyQg3iBMD-icMQooD6A=w2000-rw"/>](https://coral.ai/products/accelerator)
 [<img width="300" src="https://www.raspberrypi.org/homepage-9df4b/static/1dfa03d09c1f3e446e8d936dfb92267f/ae23f/6b0defdbbf40792b64159ab8169d97162c380b2c_raspberry-pi-zero-1-1755x1080.jpg"/>](https://www.raspberrypi.org/products/raspberry-pi-zero/)
 
+With no USB accelerator, it will just use TFLite on your CPU.
+
 ### Requirement
 
 Build and install the [docker.leila image](https://github.com/jambamamba/docker.leila). Then run the container:
@@ -77,36 +79,25 @@ cd edgetpu-minimal
 ### Object Classification
 
 ```bash
-./build/classify cat224x224.rgb
-```
-
-The input file (cat.rgb) must be 224 x 224 raw RGB image.
-
-You can use the convert utility to make RGB file like this:
-```bash
-convert cat.bmp -resize 224x224! cat.rgb
+./build/detect /path/to/persian-cat.jpg --classify
 ```
 
 #### Output:
 ```bash
-available_tpus.size: 1
-INFO: Initialized TensorFlow Lite runtime.
-Inferenced class "Persian cat" in 12 milliseconds
+Inferenced in 190 milliseconds
+class "Persian cat", score:0.984375
 ```
 
 ### Object Detection
 
 ```bash
-./build/detect /path/to/cat.jpg
+./build/detect /path/to/persian-cat.jpg
 ```
-
-Note that you can pass in any size jpg or png file as input.
 
 #### Output:
 ```bash
-available_tpus.size: 1
-INFO: Initialized TensorFlow Lite runtime.
-Inferenced class "cat" at (1,14)=> (296,227) in 30 milliseconds
+Inferenced in 410 milliseconds
+class "cat", score:0.980469, at (10,43)=>(287,225)
 ```
 
 An output file is generated with bounding boxes around the detected objects.
