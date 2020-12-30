@@ -25,6 +25,8 @@ cd docker.leila
 ```
 password is dev
 
+Note that it might take more than an hour to build, depending on your Internet speed and computer speed.
+
 ### Build
 
 After you enter the docker container, clone this repo and run the build.sh script:
