@@ -15,7 +15,7 @@ With no USB accelerator, it will just use TFLite on your CPU.
 
 ### Requirement
 
-Build and install the docker.leila image. Then run the container:
+Build and install the **docker.leila** image. Then run the container:
 
 ```bash
 git clone https://github.com/jambamamba/docker.leila.git
