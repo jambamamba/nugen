@@ -1,6 +1,6 @@
 #pragma once
 
-#include "InterpreterBuilderInterface.h"
+#include "interpreterBuilderInterface.h"
 
 class TfLiteInterpreterBuilder : public InterpreterBuilderInterface
 {

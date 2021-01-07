@@ -1,6 +1,6 @@
 #pragma once
 
-#include "InterpreterBuilderInterface.h"
+#include "interpreterBuilderInterface.h"
 
 namespace edgetpu {
 class EdgeTpuContext;

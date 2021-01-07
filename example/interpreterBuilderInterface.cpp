@@ -1,4 +1,4 @@
-#include "InterpreterBuilderInterface.h"
+#include "interpreterBuilderInterface.h"
 
 #include "tensorflow/lite/model_builder.h"
 

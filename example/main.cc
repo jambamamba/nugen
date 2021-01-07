@@ -1,13 +1,22 @@
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "TfLiteInterpreter.h"
+#include "picam/picam.h"
+#include "tfLiteInterpreter.h"
 
 namespace  {
+std::string ZeroPad(const int value, const unsigned precision)
+{
+     std::ostringstream oss;
+     oss << std::setw(precision) << std::setfill('0') << value;
+     return oss.str();
+}
 void ShowResults(const TfLiteInterpreter::Result &&res,
                  cv::Mat &original_img,
                  cv::Mat &inferenced_img,
@@ -68,9 +77,11 @@ int main(int argc, char**argv)
         return -1;
     }
     TfLiteInterpreter::Type inference_type = TfLiteInterpreter::Type::Detector;
-    if(argc == 3 && std::string(argv[2]) == "--classify" )
+    std::string image_path = argv[1];
+    if(argc == 3 && (std::string(argv[1]) == "--classify" || std::string(argv[2]) == "--classify"))
     {
         inference_type  = TfLiteInterpreter::Type::Classifier;
+        if (std::string(argv[1]) == "--classify") { image_path = argv[2]; }
     }
 
     TfLiteInterpreter interpreter(inference_type);
@@ -79,23 +90,76 @@ int main(int argc, char**argv)
         return -1;
     }
 
-    cv::Mat original_img = cv::imread(argv[1]);
-    cv::Mat img;
-    cv::resize(original_img, img,
-               cv::Size(interpreter.GetImageDimensions().width_,
-                        interpreter.GetImageDimensions().height_),
-               0, 0, cv::INTER_NEAREST);
-
-    if(!interpreter.LoadImage(img.data, img.total() * img.elemSize()))
+    PiCam picam;
+    if(image_path == "/dev/camera")
     {
-        return -1;
+        std::vector<uint8_t> rgb_data[2];
+        constexpr size_t camera_frame_width = 640;
+        constexpr size_t camera_frame_height = 480;
+        constexpr size_t camera_buffer_size = camera_frame_width * camera_frame_height * 3;
+        for(size_t i = 0; i < camera_buffer_size; ++i)
+        {
+            rgb_data[0].push_back(0);
+            rgb_data[1].push_back(0);
+        }
+        int buf = 0;
+        for(size_t it = 0;; ++it)
+        {
+            std::vector<uint8_t> &buffer1 = rgb_data[buf];
+            std::vector<uint8_t> &buffer2 = rgb_data[(buf+1)%2];
+            picam.CaptureFrame(buffer1);
+
+            cv::Mat img;
+            cv::Mat original_img(cv::Size(camera_frame_width, camera_frame_height),
+                        CV_8UC3, buffer2.data(),
+                        cv::Mat::AUTO_STEP);
+
+            cv::resize(original_img, img,
+                       cv::Size(interpreter.GetImageDimensions().width_,
+                                interpreter.GetImageDimensions().height_),
+                       0, 0, cv::INTER_NEAREST);
+
+            if(!interpreter.LoadImage(img.data, img.total() * img.elemSize()))
+            {
+                return -1;
+            }
+
+            std::string output_path = std::string("/tmp/frame") + ZeroPad(it, 5) + ".jpg";
+            ShowResults(interpreter.Inference(),
+                        original_img,
+                        img,
+                        output_path,
+                    inference_type);
+            //std::cin.get();
+
+            buf = (buf+1)%2;
+            if(it == 100) { it = 0; }
+        }
+    }
+    else
+    {
+        cv::Mat img;
+        cv::Mat original_img = cv::imread(image_path);
+        cv::resize(original_img, img,
+                   cv::Size(interpreter.GetImageDimensions().width_,
+                            interpreter.GetImageDimensions().height_),
+                   0, 0, cv::INTER_NEAREST);
+        if(!interpreter.LoadImage(img.data, img.total() * img.elemSize()))
+        {
+            return -1;
+        }
+
+        std::string output_path(argv[1]);
+        size_t pos = output_path.rfind(".");
+        output_path.insert(pos, ".inferenced");
+
+        ShowResults(interpreter.Inference(),
+                    original_img,
+                    img,
+                    output_path,
+                    inference_type);
     }
 
-    ShowResults(interpreter.Inference(),
-            original_img,
-            img,
-            argv[1],
-            inference_type);
 
     return 0;
 }

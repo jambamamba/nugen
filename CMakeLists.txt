@@ -24,7 +24,9 @@ set(INCLUDE_DIRS
     libedgetpu/bazel-libedgetpu/bazel-out/k8-opt/bin/external/flatbuffers/src/_virtual_includes/flatbuffers/
     opencv/modules/core/include/
     )
-if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
+set(LIBS usb udev edgetpu)
+
+if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "") # build for host
     set(INCLUDE_DIRS
         ${INCLUDE_DIRS}
         opencv/build/
@@ -36,10 +38,14 @@ if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
         /lib/x86_64-linux-gnu/
         ${CMAKE_SOURCE_DIR}/opencv/build/lib/
     )
-else()
+else() # cross compile
     set(INCLUDE_DIRS
         ${INCLUDE_DIRS}
         opencv/buildpi/
+        MMALPP/
+        userland/
+        userland/build/lib
+#        -std=c++17 rgb-example.cpp
         )
     set(LINK_DIRS
         ${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/rpi/
@@ -47,21 +53,33 @@ else()
         ${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
         ${CMAKE_SOURCE_DIR}/lib/ #for libudev.so
         ${CMAKE_SOURCE_DIR}/opencv/buildpi/lib/
+        ${CMAKE_SOURCE_DIR}/userland/build/lib
     )
+    set(LIBS ${LIBS}
+        EGL GLESv2 OpenVG WFC bcm_host brcmEGL brcmGLESv2 brcmOpenVG brcmWFC
+        brcmjpeg containers debug_sym dtovl mmal mmal_components mmal_core mmal_omx
+        mmal_omxutil mmal_util mmal_vc_client openmaxil vchiq_arm vcos vcsm
+    )
+    set(SOURCES
+        picam/picam.cpp
+        picam/picam.h
+    )
+    set_source_files_properties(picam.cpp PROPERTIES CMAKE_CXX_FLAGS  -std=c++17)
 endif()
-set(LIBS usb udev edgetpu)
+
 set(SOURCES
-    example/EdgeTpuInterpreterBuilder.cpp
-    example/EdgeTpuInterpreterBuilder.h
-    example/InterpreterBuilderInterface.cpp
-    example/InterpreterBuilderInterface.h
-    example/TfLiteInterpreter.cpp
-    example/TfLiteInterpreter.h
-    example/TfLiteInterpreterBuilder.cpp
-    example/TfLiteInterpreterBuilder.h
+    ${SOURCES}
     example/adapter.cc
     example/adapter.h
     example/bbox.h
+    example/edgeTpuInterpreterBuilder.cpp
+    example/edgeTpuInterpreterBuilder.h
+    example/interpreterBuilderInterface.cpp
+    example/interpreterBuilderInterface.h
+    example/tfLiteInterpreter.cpp
+    example/tfLiteInterpreter.h
+    example/tfLiteInterpreterBuilder.cpp
+    example/tfLiteInterpreterBuilder.h
     )
 ##########################################################################
 add_executable(${PROJ} main.cc)
@@ -80,21 +98,9 @@ target_include_directories(detect PRIVATE
     )
 target_link_directories(detect PRIVATE ${LINK_DIRS})
 target_link_libraries(detect PRIVATE ${LIBS}
-    opencv_video
-    opencv_objdetect
-    opencv_highgui
-    opencv_imgcodecs
-    opencv_dnn
-    opencv_imgproc
-    opencv_ml
-    opencv_calib3d
-    opencv_videoio
-    opencv_core
-    opencv_photo
-    opencv_stitching
-    opencv_features2d
-    opencv_gapi
-    opencv_flann
+    opencv_video opencv_objdetect opencv_highgui opencv_imgcodecs opencv_dnn
+    opencv_imgproc opencv_ml opencv_calib3d opencv_videoio opencv_core
+    opencv_photo opencv_stitching opencv_features2d opencv_gapi opencv_flann
     )
 
 ##########################################################################

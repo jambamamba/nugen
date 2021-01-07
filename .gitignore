@@ -8,3 +8,5 @@ models
 opencv
 systemd
 tensorflow
+userland
+MMALPP

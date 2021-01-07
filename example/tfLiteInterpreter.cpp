@@ -1,4 +1,4 @@
-#include "TfLiteInterpreter.h"
+#include "tfLiteInterpreter.h"
 
 #include <absl/strings/ascii.h>
 #include <absl/strings/numbers.h>
@@ -19,8 +19,8 @@
 #include <tflite/public/edgetpu.h>
 
 #include "adapter.h"
-#include "EdgeTpuInterpreterBuilder.h"
-#include "TfLiteInterpreterBuilder.h"
+#include "edgeTpuInterpreterBuilder.h"
+#include "tfLiteInterpreterBuilder.h"
 
 namespace  {
 struct ModelMetaData

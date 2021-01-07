@@ -4,6 +4,8 @@ set -xe
 export CC=/usr/bin/gcc
 export CXX=/usr/bin/g++
 
+export PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
+
 function parseArgs()
 {
   for change in $@; do
@@ -34,6 +36,12 @@ function cloneRepos()
     if [ ! -d curl ]; then
        git clone https://github.com/curl/curl.git
     fi
+	if [ ! -d MMALPP ]; then
+		git clone https://github.com/jambamamba/MMALPP.git
+	fi
+	if [ ! -d userland ]; then
+		git clone https://github.com/raspberrypi/userland.git
+	fi
 }
 
 function buildlibusb()
@@ -146,6 +154,58 @@ function buildlibedgetpu()
     popd
 }
 
+function builduserland()
+{
+    parseArgs "$@"
+
+    pushd userland
+		if [ "$arch" == "rpi" ]; then
+			mkdir -p buildpi
+				pushd buildpi
+				if [ "$clean" == "true" ]; then rm -fr *;fi
+				BUILD_MMAL=TRUE cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+				make -j$(getconf _NPROCESSORS_ONLN)
+			popd
+		fi
+	popd
+}
+
+function buildmmalpp()
+{
+    parseArgs "$@"
+
+    pushd MMALPP
+		if [ "$arch" == "rpi" ]; then
+			git checkout rgb
+			mkdir -p buildpi
+				#pushd buildpi
+				if [ "$clean" == "true" ]; then rm -fr *;fi
+				#cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+				$PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-g++ \
+-I./mmalpp -I../userland -L../userland/build/lib -lmmal -lmmal_util -lmmal_components -lmmal_core -lmmal_vc_client \
+-lEGL -lGLESv2 -lOpenVG -lWFC -lbcm_host -lbrcmEGL -lbrcmGLESv2 -lbrcmOpenVG -lbrcmWFC \
+-lbrcmjpeg \
+-lcontainers \
+-ldebug_sym \
+-ldtovl \
+-lmmal \
+-lmmal_components \
+-lmmal_core \
+-lmmal_omx \
+-lmmal_omxutil \
+-lmmal_util \
+-lmmal_vc_client \
+-lopenmaxil \
+-lvchiq_arm \
+-lvcos \
+-lvcsm \
+-std=c++17 rgb-example.cpp
+				#make -j$(getconf _NPROCESSORS_ONLN)
+			#popd
+		fi
+	popd
+}
+
 function buildProject()
 {
     parseArgs "$@"
@@ -177,6 +237,7 @@ function deployToPi()
     mkdir -p ./buildpi/stripped
     cp -f ./buildpi/libedgetpu/libedgetpu.so ./buildpi/stripped/
     cp -f ./buildpi/libusb/libusb.so ./buildpi/stripped/
+    cp -f ./userland/build/lib/*.so ./buildpi/stripped/
     cp -f ./buildpi/minimal ./buildpi/stripped/
     cp -f ./buildpi/detect ./buildpi/stripped/
     find ./opencv/buildpi -name "lib*.so.*" -exec cp -Pf -- "{}" ./buildpi/stripped/ \;
@@ -209,8 +270,6 @@ function main()
 {
     parseArgs "$@"
 
-    PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
-
     if [ "${deploy}" == "true" ] && [ "${ip}" != "" ]; then
         deployToPi ip="${ip}" PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR}
         return 0
@@ -228,17 +287,19 @@ function main()
 #        done
     fi
 
-    cloneRepos clean=$clean
-    buildlibusb arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
-    buildlibcurl arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
-    buildopencv arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
+    cloneRepos "$@"
+    buildlibusb "$@"
+    buildlibcurl "$@"
+    buildopencv "$@"
     #cannot build systemd, for now use libudev.so checked into libedgetpu repo, later remove it when this is building:
     #if [ "$arch" == "rpi" ]; then
-    #	buildsystemd arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
+    #	buildsystemd "$@"
     #fi
-    buildlibedgetpu arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
-    buildProject arch=$arch PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} clean=$clean
-    showResult arch=$arch
+	builduserland "$@"
+	buildmmalpp "$@"
+    buildlibedgetpu "$@"
+    buildProject "$@"
+    showResult "$@"
 }
 
 main "$@"

@@ -1,4 +1,4 @@
-#include "EdgeTpuInterpreterBuilder.h"
+#include "edgeTpuInterpreterBuilder.h"
 
 #include <iostream>
 
