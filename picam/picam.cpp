@@ -59,7 +59,7 @@ PiCam::PiCam()
 PiCam::~PiCam()
 {
     null_sink_.disconnect();
-    camera_.disconnect();
+//    camera_.disconnect();
 
     null_sink_.close();
     camera_.close();

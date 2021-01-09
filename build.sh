@@ -178,8 +178,7 @@ function buildmmalpp()
 		if [ "$arch" == "rpi" ]; then
 			git checkout rgb
 			mkdir -p buildpi
-				#pushd buildpi
-				if [ "$clean" == "true" ]; then rm -fr *;fi
+				if [ "$clean" == "true" ]; then rm -fr rgb-example;fi
 				#cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
 				$PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-g++ \
 -I./mmalpp -I../userland -L../userland/build/lib -lmmal -lmmal_util -lmmal_components -lmmal_core -lmmal_vc_client \
@@ -199,9 +198,7 @@ function buildmmalpp()
 -lvchiq_arm \
 -lvcos \
 -lvcsm \
--std=c++17 rgb-example.cpp
-				#make -j$(getconf _NPROCESSORS_ONLN)
-			#popd
+-std=c++17 rgb-example.cpp -o rgb-example
 		fi
 	popd
 }
@@ -251,9 +248,8 @@ function deployToPi()
     done
 
     ssh-copy-id pi@${ip}
-    rsync -uav ./buildpi/stripped/* pi@${ip}:/tmp
-    rsync -uav download-models.sh pi@${ip}:/tmp
-    #scp /tmp/mobilenet_v2_1.0_224_quant_edgetpu.tflite pi@${IP}:/tmp/
+    rsync -uav ./buildpi/stripped/* pi@${ip}:~/nugen
+    rsync -uav download-models.sh pi@${ip}:~/nugen
 }
 
 function showResult()

@@ -1,6 +1,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <experimental/filesystem>
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/highgui.hpp>
@@ -64,6 +65,7 @@ void ShowResults(const TfLiteInterpreter::Result &&res,
         size_t pos = output_path.rfind(".");
         output_path.insert(pos, ".inferenced");
         cv::imwrite(output_path.c_str(), original_img);
+        std::cout << "Wrote to " << output_path << "\n";
     }
 }
 }//namespace
@@ -93,6 +95,11 @@ int main(int argc, char**argv)
     PiCam picam;
     if(image_path == "/dev/camera")
     {
+        const std::string output_path("/media/usb-drive/nugen/");
+        std::experimental::filesystem::create_directories(output_path);
+        for (const auto& entry : std::experimental::filesystem::directory_iterator(output_path))
+        {std::experimental::filesystem::remove_all(entry.path());}
+
         std::vector<uint8_t> rgb_data[2];
         constexpr size_t camera_frame_width = 640;
         constexpr size_t camera_frame_height = 480;
@@ -124,16 +131,18 @@ int main(int argc, char**argv)
                 return -1;
             }
 
-            std::string output_path = std::string("/tmp/frame") + ZeroPad(it, 5) + ".jpg";
+            char path[128] = {0};
+            sprintf(path, "%sframe%05i.jpg", output_path.c_str(), it);
+//            std::string output_path = std::string(output_path) + std::string("frame") + ZeroPad(it, 5) + ".jpg";
             ShowResults(interpreter.Inference(),
                         original_img,
                         img,
-                        output_path,
+                        path,
                     inference_type);
             //std::cin.get();
 
             buf = (buf+1)%2;
-            if(it == 100) { it = 0; }
+            if(it == 10000) { it = 0; }
         }
     }
     else

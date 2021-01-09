@@ -137,9 +137,9 @@ bool TfLiteInterpreter::Create()
 
     interpreter_builder_ = (available_tpus.size() > 0) ?
                 (std::unique_ptr<InterpreterBuilderInterface>)
-                std::make_unique<EdgeTpuInterpreterBuilder>("models/" + meta_data_[type_].model_file_ + "_edgetpu.tflite"):
+                std::make_unique<EdgeTpuInterpreterBuilder>("/home/pi/nugen/models/" + meta_data_[type_].model_file_ + "_edgetpu.tflite"):
                 (std::unique_ptr<InterpreterBuilderInterface>)
-                std::make_unique<TfLiteInterpreterBuilder>("models/" + meta_data_[type_].model_file_ + ".tflite");
+                std::make_unique<TfLiteInterpreterBuilder>("/home/pi/nugen/models/" + meta_data_[type_].model_file_ + ".tflite");
 
     interpreter_ = interpreter_builder_->BuildInterpreter();
     if(!interpreter_)

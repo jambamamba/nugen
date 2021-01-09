@@ -59,6 +59,7 @@ else() # cross compile
         EGL GLESv2 OpenVG WFC bcm_host brcmEGL brcmGLESv2 brcmOpenVG brcmWFC
         brcmjpeg containers debug_sym dtovl mmal mmal_components mmal_core mmal_omx
         mmal_omxutil mmal_util mmal_vc_client openmaxil vchiq_arm vcos vcsm
+        stdc++fs
     )
     set(SOURCES
         picam/picam.cpp
