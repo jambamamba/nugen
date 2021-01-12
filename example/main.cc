@@ -1,7 +1,9 @@
+#include <experimental/filesystem>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <experimental/filesystem>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/highgui.hpp>
@@ -12,11 +14,36 @@
 #include "tfLiteInterpreter.h"
 
 namespace  {
-std::string ZeroPad(const int value, const unsigned precision)
+/////////////////////////////////////////////////////
+bool UsbDeviceMounted()
 {
-     std::ostringstream oss;
-     oss << std::setw(precision) << std::setfill('0') << value;
-     return oss.str();
+	struct stat info;
+	const std::string mount_point("/dev/disk/by-uuid/31cc5498-c35c-4b67-a23e-31dc5499fc92");
+	if( stat( mount_point.c_str(), &info ) != 0 )
+	{
+		std::cout << "Cannot access " << mount_point << "\n";
+		return false;
+	}
+	else if( info.st_mode & S_IFLNK )
+	{
+		std::cout << "Found USB device " << mount_point << "\n";
+		return true;
+	}
+	return false;
+}
+/////////////////////////////////////////////////////
+std::string PrepareOutputImageDirectory()
+{
+	std::string output_path;
+	if(UsbDeviceMounted())
+	{
+		output_path = std::string("/media/usb-drive/nugen/");
+
+		std::experimental::filesystem::create_directories(output_path);
+		for (const auto& entry : std::experimental::filesystem::directory_iterator(output_path))
+		{std::experimental::filesystem::remove_all(entry.path());}
+	}
+	return output_path;
 }
 void ShowResults(const TfLiteInterpreter::Result &&res,
                  cv::Mat &original_img,
@@ -68,8 +95,83 @@ void ShowResults(const TfLiteInterpreter::Result &&res,
         std::cout << "Wrote to " << output_path << "\n";
     }
 }
+/////////////////////////////////////////////////////
+void InferenceImage(const std::string &image_path, TfLiteInterpreter &interpreter,  TfLiteInterpreter::Type inference_type)
+{
+	cv::Mat img;
+	cv::Mat original_img = cv::imread(image_path);
+	cv::resize(original_img, img,
+			   cv::Size(interpreter.GetImageDimensions().width_,
+						interpreter.GetImageDimensions().height_),
+			   0, 0, cv::INTER_NEAREST);
+	if(!interpreter.LoadImage(img.data, img.total() * img.elemSize()))
+	{
+		return;
+	}
+
+	std::string output_path(image_path);
+	size_t pos = output_path.rfind(".");
+	output_path.insert(pos, ".inferenced");
+
+	ShowResults(interpreter.Inference(),
+				original_img,
+				img,
+				output_path,
+				inference_type);
+}
+/////////////////////////////////////////////////////
+void InferenceCameraImageLoop(const std::string &image_path, TfLiteInterpreter &interpreter,  TfLiteInterpreter::Type inference_type, bool &killed)
+{
+	std::string output_path = PrepareOutputImageDirectory();
+
+	std::vector<uint8_t> rgb_data[2];
+	constexpr size_t camera_frame_width = 640;
+	constexpr size_t camera_frame_height = 480;
+	constexpr size_t camera_buffer_size = camera_frame_width * camera_frame_height * 3;
+	for(size_t i = 0; i < camera_buffer_size; ++i)
+	{
+		rgb_data[0].push_back(0);
+		rgb_data[1].push_back(0);
+	}
+	int buf = 0;
+    PiCam picam;
+	for(size_t it = 0; !killed; ++it)
+	{
+		std::vector<uint8_t> &buffer1 = rgb_data[buf];
+		std::vector<uint8_t> &buffer2 = rgb_data[(buf+1)%2];
+		picam.CaptureFrame(buffer1);
+
+		cv::Mat img;
+		cv::Mat original_img(cv::Size(camera_frame_width, camera_frame_height),
+					CV_8UC3, buffer2.data(),
+					cv::Mat::AUTO_STEP);
+
+		cv::resize(original_img, img,
+				   cv::Size(interpreter.GetImageDimensions().width_,
+							interpreter.GetImageDimensions().height_),
+				   0, 0, cv::INTER_NEAREST);
+
+		if(!interpreter.LoadImage(img.data, img.total() * img.elemSize()))
+		{
+			return;//todo
+		}
+
+		char path[128] = {0};
+		sprintf(path, "%sframe%05i.jpg", output_path.c_str(), it);
+		ShowResults(interpreter.Inference(),
+					original_img,
+					img,
+					path,
+				inference_type);
+		//std::cin.get();
+
+		buf = (buf+1)%2;
+		if(it == 10000) { it = 0; }
+	}
+}
 }//namespace
 
+/////////////////////////////////////////////////////
 int main(int argc, char**argv)
 {
     if(argc < 2)
@@ -92,83 +194,15 @@ int main(int argc, char**argv)
         return -1;
     }
 
-    PiCam picam;
     if(image_path == "/dev/camera")
     {
-        const std::string output_path("/media/usb-drive/nugen/");
-        std::experimental::filesystem::create_directories(output_path);
-        for (const auto& entry : std::experimental::filesystem::directory_iterator(output_path))
-        {std::experimental::filesystem::remove_all(entry.path());}
-
-        std::vector<uint8_t> rgb_data[2];
-        constexpr size_t camera_frame_width = 640;
-        constexpr size_t camera_frame_height = 480;
-        constexpr size_t camera_buffer_size = camera_frame_width * camera_frame_height * 3;
-        for(size_t i = 0; i < camera_buffer_size; ++i)
-        {
-            rgb_data[0].push_back(0);
-            rgb_data[1].push_back(0);
-        }
-        int buf = 0;
-        for(size_t it = 0;; ++it)
-        {
-            std::vector<uint8_t> &buffer1 = rgb_data[buf];
-            std::vector<uint8_t> &buffer2 = rgb_data[(buf+1)%2];
-            picam.CaptureFrame(buffer1);
-
-            cv::Mat img;
-            cv::Mat original_img(cv::Size(camera_frame_width, camera_frame_height),
-                        CV_8UC3, buffer2.data(),
-                        cv::Mat::AUTO_STEP);
-
-            cv::resize(original_img, img,
-                       cv::Size(interpreter.GetImageDimensions().width_,
-                                interpreter.GetImageDimensions().height_),
-                       0, 0, cv::INTER_NEAREST);
-
-            if(!interpreter.LoadImage(img.data, img.total() * img.elemSize()))
-            {
-                return -1;
-            }
-
-            char path[128] = {0};
-            sprintf(path, "%sframe%05i.jpg", output_path.c_str(), it);
-//            std::string output_path = std::string(output_path) + std::string("frame") + ZeroPad(it, 5) + ".jpg";
-            ShowResults(interpreter.Inference(),
-                        original_img,
-                        img,
-                        path,
-                    inference_type);
-            //std::cin.get();
-
-            buf = (buf+1)%2;
-            if(it == 10000) { it = 0; }
-        }
+		bool killed = false;
+		InferenceCameraImageLoop(image_path, interpreter, inference_type, killed);
     }
     else
-    {
-        cv::Mat img;
-        cv::Mat original_img = cv::imread(image_path);
-        cv::resize(original_img, img,
-                   cv::Size(interpreter.GetImageDimensions().width_,
-                            interpreter.GetImageDimensions().height_),
-                   0, 0, cv::INTER_NEAREST);
-        if(!interpreter.LoadImage(img.data, img.total() * img.elemSize()))
-        {
-            return -1;
-        }
-
-        std::string output_path(argv[1]);
-        size_t pos = output_path.rfind(".");
-        output_path.insert(pos, ".inferenced");
-
-        ShowResults(interpreter.Inference(),
-                    original_img,
-                    img,
-                    output_path,
-                    inference_type);
-    }
-
+	{
+		InferenceImage(image_path, interpreter, inference_type);
+	}
 
     return 0;
 }

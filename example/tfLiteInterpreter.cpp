@@ -70,7 +70,7 @@ struct ModelDownloader
     {
         system("/bin/bash -c \"./download-models.sh\"");
     }
-}_;
+}/*_*/;//uncomment to run script at launch
 
 void RegExParseLabelFromLine(std::unordered_map<int, std::string> &labels, const std::string &line)
 {
@@ -89,7 +89,7 @@ void RegExParseLabelFromLine(std::unordered_map<int, std::string> &labels, const
 
 std::unordered_map<int, std::string> LoadLabels(TfLiteInterpreter::Type type)
 {
-  std::string file_path = "models/" + meta_data_[type].label_file_;
+  std::string file_path = "/home/pi/nugen/models/" + meta_data_[type].label_file_;
 
   std::ifstream file(file_path.c_str());
   if(!file)
