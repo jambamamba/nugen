@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
-set(PROJ minimal)
+set(PROJ detect)
 PROJECT(${PROJ})
 
 set(CMAKE_C_FLAGS "-Wall -pthread")
@@ -18,13 +18,14 @@ add_subdirectory(libedgetpu)
 set(CMAKE_INSTALL_RPATH "$ORIGIN/.")
 set(INCLUDE_DIRS
     .
+    nzlogger/
     libedgetpu/
-    libedgetpu/tflite/public/
-    libedgetpu/tensorflow/
     libedgetpu/bazel-libedgetpu/bazel-out/k8-opt/bin/external/flatbuffers/src/_virtual_includes/flatbuffers/
+    libedgetpu/tensorflow/
+    libedgetpu/tflite/public/
     opencv/modules/core/include/
     )
-set(LIBS usb udev edgetpu)
+set(LIBS usb udev edgetpu stdc++fs)
 
 if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "") # build for host
     set(INCLUDE_DIRS
@@ -37,6 +38,10 @@ if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "") # build for host
         ${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
         /lib/x86_64-linux-gnu/
         ${CMAKE_SOURCE_DIR}/opencv/build/lib/
+    )
+    set(SOURCES
+        picam/fakecam.cpp
+        picam/fakecam.h
     )
 else() # cross compile
     set(INCLUDE_DIRS
@@ -59,37 +64,36 @@ else() # cross compile
         EGL GLESv2 OpenVG WFC bcm_host brcmEGL brcmGLESv2 brcmOpenVG brcmWFC
         brcmjpeg containers debug_sym dtovl mmal mmal_components mmal_core mmal_omx
         mmal_omxutil mmal_util mmal_vc_client openmaxil vchiq_arm vcos vcsm
-        stdc++fs
     )
     set(SOURCES
         picam/picam.cpp
         picam/picam.h
     )
+    add_definitions(-DUSE_PICAM)
     set_source_files_properties(picam.cpp PROPERTIES CMAKE_CXX_FLAGS  -std=c++17)
 endif()
 
 set(SOURCES
     ${SOURCES}
-    example/adapter.cc
-    example/adapter.h
-    example/bbox.h
-    example/edgeTpuInterpreterBuilder.cpp
-    example/edgeTpuInterpreterBuilder.h
-    example/interpreterBuilderInterface.cpp
-    example/interpreterBuilderInterface.h
-    example/tfLiteInterpreter.cpp
-    example/tfLiteInterpreter.h
-    example/tfLiteInterpreterBuilder.cpp
-    example/tfLiteInterpreterBuilder.h
+    nzlogger/nzlogger.h
+    nzlogger/nzlogger.cpp
+    picam/camera_factory.cpp
+    picam/camera_factory.h
+    tfhelper/adapter.cc
+    tfhelper/adapter.h
+    tfhelper/bbox.h
+    tfhelper/edgeTpuInterpreterBuilder.cpp
+    tfhelper/edgeTpuInterpreterBuilder.h
+    tfhelper/interpreterBuilderInterface.cpp
+    tfhelper/interpreterBuilderInterface.h
+    tfhelper/tfLiteInterpreter.cpp
+    tfhelper/tfLiteInterpreter.h
+    tfhelper/tfLiteInterpreterBuilder.cpp
+    tfhelper/tfLiteInterpreterBuilder.h
     )
-##########################################################################
-add_executable(${PROJ} main.cc)
-target_include_directories(${PROJ} PRIVATE ${INCLUDE_DIRS})
-target_link_directories(${PROJ} PRIVATE ${LINK_DIRS})
-target_link_libraries(${PROJ} PRIVATE ${LIBS})
 
 ##########################################################################
-add_executable(detect ${SOURCES} example/main.cc)
+add_executable(${PROJ} ${SOURCES} main.cc)
 target_include_directories(detect PRIVATE
     ${INCLUDE_DIRS}
     opencv/modules/highgui/include/

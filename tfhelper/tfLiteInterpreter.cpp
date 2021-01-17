@@ -70,7 +70,7 @@ struct ModelDownloader
     {
         system("/bin/bash -c \"./download-models.sh\"");
     }
-}/*_*/;//uncomment to run script at launch
+}_;//uncomment to run script at launch
 
 void RegExParseLabelFromLine(std::unordered_map<int, std::string> &labels, const std::string &line)
 {
@@ -89,7 +89,7 @@ void RegExParseLabelFromLine(std::unordered_map<int, std::string> &labels, const
 
 std::unordered_map<int, std::string> LoadLabels(TfLiteInterpreter::Type type)
 {
-  std::string file_path = "/home/pi/nugen/models/" + meta_data_[type].label_file_;
+  std::string file_path = "models/" + meta_data_[type].label_file_;
 
   std::ifstream file(file_path.c_str());
   if(!file)
@@ -137,9 +137,9 @@ bool TfLiteInterpreter::Create()
 
     interpreter_builder_ = (available_tpus.size() > 0) ?
                 (std::unique_ptr<InterpreterBuilderInterface>)
-                std::make_unique<EdgeTpuInterpreterBuilder>("/home/pi/nugen/models/" + meta_data_[type_].model_file_ + "_edgetpu.tflite"):
+                std::make_unique<EdgeTpuInterpreterBuilder>("models/" + meta_data_[type_].model_file_ + "_edgetpu.tflite"):
                 (std::unique_ptr<InterpreterBuilderInterface>)
-                std::make_unique<TfLiteInterpreterBuilder>("/home/pi/nugen/models/" + meta_data_[type_].model_file_ + ".tflite");
+                std::make_unique<TfLiteInterpreterBuilder>("models/" + meta_data_[type_].model_file_ + ".tflite");
 
     interpreter_ = interpreter_builder_->BuildInterpreter();
     if(!interpreter_)
