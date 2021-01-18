@@ -15,7 +15,7 @@ class PiCam : public CameraInterface
 public:
     PiCam();
     virtual ~PiCam();
-    void CaptureFrame(uint8_t *rgb_data) override;
+    void CaptureFrame(CameraData &cam_data) override;
     bool WaitForData() override;
 
 protected:

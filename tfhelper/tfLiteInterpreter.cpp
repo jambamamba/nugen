@@ -49,6 +49,13 @@ struct ModelMetaData
 
 ModelMetaData meta_data_[TfLiteInterpreter::Type::NumTypes] = {
     {
+        "",
+        "",
+        "",
+        "",
+        0,0
+    },
+    {
         "https://github.com/google-coral/edgetpu/raw/master/test_data/",
         "mobilenet_v2_1.0_224_quant",
         "https://storage.googleapis.com/download.tensorflow.org/data/",
@@ -70,7 +77,7 @@ struct ModelDownloader
     {
         system("/bin/bash -c \"./download-models.sh\"");
     }
-}_;//uncomment to run script at launch
+}/*_*/;//uncomment to run script at launch
 
 void RegExParseLabelFromLine(std::unordered_map<int, std::string> &labels, const std::string &line)
 {

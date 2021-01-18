@@ -16,6 +16,7 @@ class TfLiteInterpreter
 public:
     enum Type
     {
+        None,
         Classifier,
         Detector,
         NumTypes
@@ -30,8 +31,8 @@ public:
                        float score = 0,
                        const cv::Rect &bounding_rect = cv::Rect())
             : class_(cls)
-            , score_(score)
             , bounding_rect_(bounding_rect)
+            , score_(score)
         {}
     };
 

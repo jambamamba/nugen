@@ -50,7 +50,6 @@ else() # cross compile
         MMALPP/
         userland/
         userland/build/lib
-#        -std=c++17 rgb-example.cpp
         )
     set(LINK_DIRS
         ${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/rpi/
@@ -79,6 +78,7 @@ set(SOURCES
     nzlogger/nzlogger.cpp
     picam/camera_factory.cpp
     picam/camera_factory.h
+    picam/camera_interface.h
     tfhelper/adapter.cc
     tfhelper/adapter.h
     tfhelper/bbox.h
@@ -94,15 +94,15 @@ set(SOURCES
 
 ##########################################################################
 add_executable(${PROJ} ${SOURCES} main.cc)
-target_include_directories(detect PRIVATE
+target_include_directories(${PROJ} PRIVATE
     ${INCLUDE_DIRS}
     opencv/modules/highgui/include/
     opencv/modules/imgcodecs/include/
     opencv/modules/imgproc/include/
     opencv/modules/videoio/include/
     )
-target_link_directories(detect PRIVATE ${LINK_DIRS})
-target_link_libraries(detect PRIVATE ${LIBS}
+target_link_directories(${PROJ} PRIVATE ${LINK_DIRS})
+target_link_libraries(${PROJ} PRIVATE ${LIBS}
     opencv_video opencv_objdetect opencv_highgui opencv_imgcodecs opencv_dnn
     opencv_imgproc opencv_ml opencv_calib3d opencv_videoio opencv_core
     opencv_photo opencv_stitching opencv_features2d opencv_gapi opencv_flann

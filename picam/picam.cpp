@@ -3,8 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include <mmalpp/mmalpp.h>
-//#include <sys/syscall.h>
-//#include <unistd.h>
+#include <nzlogger.h>
+
+NEW_LOG_CATEGORY(PicamLog)
 
 namespace  {
 
@@ -35,6 +36,7 @@ MMAL_PARAMETER_EXPOSUREMODE_T exp_mode_ =
     { MMAL_PARAMETER_EXPOSURE_MODE, sizeof ( exp_mode_ ) },
     MMAL_PARAM_EXPOSUREMODE_AUTO
 };
+
 }//namespace
 
 PiCam::PiCam()
@@ -84,30 +86,33 @@ void PiCam::CommitStillPortFormat()
     camera_.output(2).commit();
 }
 
-void PiCam::CaptureFrame(uint8_t *rgb_data)
+
+void PiCam::CaptureFrame(CameraData &cam_data)
 {
     camera_data_available_ = false;
-    rgb_data.clear();
-    camera_.output(2).set_userdata(rgb_data);
+    camera_.output(2).set_userdata(cam_data);
     camera_.output(2).parameter().set_boolean(MMAL_PARAMETER_CAPTURE, true);
 }
 
 void PiCam::HandleFrameData(mmalpp::Generic_port &port, mmalpp::Buffer &buffer)
 {
-    //std::cout << "irq tid: " << syscall(SYS_gettid) << "\n";
-    std::vector<u_char>& v = port.get_userdata_as<std::vector<u_char>>();
-    v.insert(v.end(), buffer.begin(), buffer.end());
+    CameraData &cam_data = port.get_userdata_as<CameraData>();
+    uint8_t *rgb_data = cam_data.buffer_;
 
-//    std::cout << "callback got data. buffer size: " << buffer.size() << "\n";
+    LOG_C(PicamLog, DEBUG) << "callback got data. buffer size: " << buffer.size()
+              << ", offset: " << buffer.offset()
+              << ", length: " << buffer.size();
+    if (buffer.size() > 0)
+    {
+        memcpy(rgb_data, buffer.data() + buffer.offset(), buffer.size());
+    }
+
     if (buffer.size() == 0)
     {
-//        std::ofstream f("/tmp/test.rgb", std::ios::binary);
-//        f.write(reinterpret_cast<char*>(v.data()), static_cast<std::streamsize>(v.size()));
-//        f.close();
-        std::cout << "Finished capture. vector size: " << v.size() << std::endl;
-		std::unique_lock<std::mutex> lk(m_);
+        LOG_C(PicamLog, DEBUG) << "Finished capture. vector size: " << buffer.size();
+        std::unique_lock<std::mutex> lk(m_);
 		camera_data_available_ = true;
-		cv_.notify_one();
+        cv_.notify_one();
     }
     buffer.release();
 
@@ -120,6 +125,6 @@ void PiCam::HandleFrameData(mmalpp::Generic_port &port, mmalpp::Buffer &buffer)
 bool PiCam::WaitForData()
 {
     std::unique_lock<std::mutex> lk(m_);
-    cv_.wait(lk, [this]{return camera_data_available_;});
+    cv_.wait(lk, [this]{ return camera_data_available_; });
     return camera_data_available_;
 }

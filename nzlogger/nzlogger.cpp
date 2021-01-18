@@ -22,7 +22,7 @@ Logger::LogLine::~LogLine()
 {
     if(!enabled_) { return; }
 //todo : push to queue, let another thread empty the queue and write to file somewhere
-    std::cout << stream_.str();
+    std::cout << stream_.str() << "\n";
 }
 
 std::ostringstream &Logger::LogLine::Stream()

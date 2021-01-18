@@ -59,14 +59,14 @@ function buildlibusb()
             pushd build
                     if [ "$clean" == "true" ]; then rm -fr *;fi
                     cmake ..
-                    make -j$(getconf _NPROCESSORS_ONLN)
+                    make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         elif [ "$arch" == "rpi" ]; then
             mkdir -p buildpi
             pushd buildpi
                     if [ "$clean" == "true" ]; then rm -fr *;fi
                     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
-                    make -j$(getconf _NPROCESSORS_ONLN)
+                    make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         fi
     popd
@@ -82,14 +82,14 @@ function buildlibcurl()
             pushd build
                     if [ "$clean" == "true" ]; then rm -fr *;fi
                     cmake ..
-                    make -j$(getconf _NPROCESSORS_ONLN)
+                    make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         elif [ "$arch" == "rpi" ]; then
             mkdir -p buildpi
             pushd buildpi
                     if [ "$clean" == "true" ]; then rm -fr *;fi
                     #cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
-                    #make -j$(getconf _NPROCESSORS_ONLN)
+                    #make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         fi
     popd
@@ -105,14 +105,14 @@ function buildopencv()
             pushd build
                     if [ "$clean" == "true" ]; then rm -fr *;fi
                     cmake -DOPENCV_FORCE_3RDPARTY_BUILD=ON ..
-                    make -j$(getconf _NPROCESSORS_ONLN)
+                    make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         elif [ "$arch" == "rpi" ]; then
             mkdir -p buildpi
             pushd buildpi
                     if [ "$clean" == "true" ]; then rm -fr *;fi
                     cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
-                    make -j$(getconf _NPROCESSORS_ONLN)
+                    make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         fi
     popd
@@ -124,7 +124,7 @@ function buildsystemd()
     pushd systemd
             git checkout raspi0
             /home/dev/.local/bin/meson --cross-file CROSS_FILE build
-            make -j$(getconf _NPROCESSORS_ONLN)
+            make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
     popd
 }
 
@@ -164,7 +164,7 @@ function builduserland()
 				pushd buildpi
 				if [ "$clean" == "true" ]; then rm -fr *;fi
 				BUILD_MMAL=TRUE cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
-				make -j$(getconf _NPROCESSORS_ONLN)
+                                make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
 			popd
 		fi
 	popd
@@ -206,13 +206,14 @@ function buildmmalpp()
 function buildProject()
 {
     parseArgs "$@"
+    echo "$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake"
 
     if [ "$arch" == "host" ]; then
         mkdir -p build
         pushd build
             if [ "$clean" == "true" ]; then rm -fr *;fi
             cmake ..
-            make -j$(getconf _NPROCESSORS_ONLN)
+            make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
         popd
     elif [ "$arch" == "rpi" ]; then
         mkdir -p buildpi
@@ -235,13 +236,10 @@ function deployToPi()
     cp -f ./buildpi/libedgetpu/libedgetpu.so ./buildpi/stripped/
     cp -f ./buildpi/libusb/libusb.so ./buildpi/stripped/
     cp -f ./userland/build/lib/*.so ./buildpi/stripped/
-    cp -f ./buildpi/minimal ./buildpi/stripped/
     cp -f ./buildpi/detect ./buildpi/stripped/
     find ./opencv/buildpi -name "lib*.so.*" -exec cp -Pf -- "{}" ./buildpi/stripped/ \;
-    chrpath -r '$ORIGIN/.' ./buildpi/stripped/minimal
     chrpath -r '$ORIGIN/.' ./buildpi/stripped/detect
 
-    $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/minimal
     $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/detect
     for filename in ./buildpi/stripped/lib*.so; do
         $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ${filename}
