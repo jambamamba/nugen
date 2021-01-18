@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <numeric>
+#include <nzlogger.h>
 #include <regex>
 #include <tensorflow/lite/builtin_op_data.h>
 #include <tensorflow/lite/interpreter.h>
@@ -21,6 +22,8 @@
 #include "adapter.h"
 #include "edgeTpuInterpreterBuilder.h"
 #include "tfLiteInterpreterBuilder.h"
+
+NEW_LOG_CATEGORY(TfHelperLog)
 
 namespace  {
 struct ModelMetaData
@@ -101,7 +104,7 @@ std::unordered_map<int, std::string> LoadLabels(TfLiteInterpreter::Type type)
   std::ifstream file(file_path.c_str());
   if(!file)
   {
-      std::cerr << "Cannot open " << file_path << "\n";
+      LOG_C(TfHelperLog, WARNING) << "Cannot open " << file_path;
       exit(-1);
   }
 
@@ -140,18 +143,22 @@ TfLiteInterpreter::~TfLiteInterpreter()
 bool TfLiteInterpreter::Create()
 {
     const auto& available_tpus = edgetpu::EdgeTpuManager::GetSingleton()->EnumerateEdgeTpu();
-    std::cout << "available_tpus.size: " << available_tpus.size() << "\n";
+    LOG_C(TfHelperLog, INFO) << "available_tpus.size: " << available_tpus.size();
 
-    interpreter_builder_ = (available_tpus.size() > 0) ?
-                (std::unique_ptr<InterpreterBuilderInterface>)
-                std::make_unique<EdgeTpuInterpreterBuilder>("models/" + meta_data_[type_].model_file_ + "_edgetpu.tflite"):
-                (std::unique_ptr<InterpreterBuilderInterface>)
-                std::make_unique<TfLiteInterpreterBuilder>("models/" + meta_data_[type_].model_file_ + ".tflite");
+    if(meta_data_[type_].model_file_.size() > 0)
+    {
+        interpreter_builder_ = (available_tpus.size() > 0) ?
+                    (std::unique_ptr<InterpreterBuilderInterface>)
+                    std::make_unique<EdgeTpuInterpreterBuilder>("models/" + meta_data_[type_].model_file_ + "_edgetpu.tflite"):
+                    (std::unique_ptr<InterpreterBuilderInterface>)
+                    std::make_unique<TfLiteInterpreterBuilder>("models/" + meta_data_[type_].model_file_ + ".tflite");
 
-    interpreter_ = interpreter_builder_->BuildInterpreter();
+        interpreter_ = interpreter_builder_->BuildInterpreter();
+
+    }
     if(!interpreter_)
     {
-        std::cerr << "Failed to create interpreter";
+        LOG_C(TfHelperLog, WARNING) << "Failed to create interpreter";
         return false;
     }
     return true;
@@ -169,19 +176,19 @@ bool TfLiteInterpreter::LoadImage(const std::string &rgb_file) const
     std::ifstream file(rgb_file, std::ios::binary);
     if(!file)
     {
-        std::cerr << "Could not load image for classification: " << rgb_file << "\n";
-        std::cerr << "It must be a RGB file, 8 bits per pixel, with dimensions "
+        LOG_C(TfHelperLog, WARNING) << "Could not load image for classification: " << rgb_file;
+        LOG_C(TfHelperLog, WARNING) << "It must be a RGB file, 8 bits per pixel, with dimensions "
                   << meta_data_[type_].image_width_
                   << "x"
                   << meta_data_[type_].image_height_
-                  << "\n";
+                 ;
         exit(-1);
         return false;
     }
     file.seekg(0, std::ios_base::end);
     if(file.tellg() != static_cast<long>(input->bytes))
     {
-        std::cerr << "Input file size is " << file.tellg() << " bytes, expecting size " << input->bytes << "\n";
+        LOG_C(TfHelperLog, WARNING) << "Input file size is " << file.tellg() << " bytes, expecting size " << input->bytes;
         exit(-1);
         return false;
     }
@@ -196,7 +203,7 @@ bool TfLiteInterpreter::LoadImage(const uint8_t *data, size_t sz) const
     auto input = interpreter_->input_tensor(0);
     if(sz != input->bytes)
     {
-        std::cerr << "Input file size is " << sz << " bytes, expecting size " << input->bytes << "\n";
+        LOG_C(TfHelperLog, WARNING) << "Input file size is " << sz << " bytes, expecting size " << input->bytes;
         exit(-1);
         return false;
     }
@@ -210,7 +217,7 @@ TfLiteInterpreter::Result TfLiteInterpreter::Inference() const
     auto start = std::chrono::steady_clock::now();
     if(interpreter_->Invoke() != kTfLiteOk)
     {
-        std::cerr << "Failed to invoke model." << std::endl;
+        LOG_C(TfHelperLog, WARNING) << "Failed to invoke model." << std::endl;
         exit(-1);
     }
     auto end = std::chrono::steady_clock::now();
@@ -219,7 +226,7 @@ TfLiteInterpreter::Result TfLiteInterpreter::Inference() const
         auto results = coral::GetClassificationResults(*interpreter_, 0.0f, /*top_k=*/1);
         if(results.size() < 1)
         {
-            std::cerr << "Failed to classify image." << std::endl;
+            LOG_C(TfHelperLog, WARNING) << "Failed to classify image." << std::endl;
             exit(-1);
         }
         std::vector<DetectedObject> objects = { {labels_.at(results[0].id), results[0].score} };

@@ -11,7 +11,7 @@ class FakeCam : public CameraInterface
 {
 public:
     FakeCam();
-    virtual void CaptureFrame(uint8_t *rgb_data) override;
+    virtual void CaptureFrame(CameraData &cam_data) override;
     virtual bool WaitForData() override;
 
 protected:

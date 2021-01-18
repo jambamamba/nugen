@@ -16,13 +16,13 @@ FakeCam::FakeCam()
     it_ = fs::begin(it_);
 }
 
-void FakeCam::CaptureFrame(uint8_t *rgb_data)
+void FakeCam::CaptureFrame(CameraData &cam_data)
 {
     if(it_ != fs::end(it_))
     {
         std::cout << it_->path() << "\n";
         cv::Mat image = cv::imread(it_->path().c_str());
-        memcpy(rgb_data, image.data, image.total() * image.elemSize());
+        memcpy(cam_data.buffer_, image.data, image.total() * image.elemSize());
 
         it_++;
     }

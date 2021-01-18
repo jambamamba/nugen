@@ -138,10 +138,15 @@ void ShowResults(const TfLiteInterpreter::Result &&res,
 }
 /////////////////////////////////////////////////////
 void InferenceImage(const std::string &image_path,
-                    TfLiteInterpreter &interpreter,
                     TfLiteInterpreter::Type inference_type,
                     bool log_images)
 {
+    TfLiteInterpreter interpreter(inference_type);
+    if(!interpreter.Create())
+    {
+        return;
+    }
+
     cv::Mat img;
     cv::Mat original_img = cv::imread(image_path);
     cv::resize(original_img, img,
@@ -165,8 +170,7 @@ void InferenceImage(const std::string &image_path,
                 log_images);
 }
 /////////////////////////////////////////////////////
-bool InferenceCameraImage(TfLiteInterpreter &interpreter,
-                          TfLiteInterpreter::Type inference_type,
+bool InferenceCameraImage(TfLiteInterpreter::Type inference_type,
                           cv::Mat &original_img,
                           const std::string &inferenced_file_path,
                           bool log_images)
@@ -174,6 +178,12 @@ bool InferenceCameraImage(TfLiteInterpreter &interpreter,
     if(inference_type != TfLiteInterpreter::Type::Classifier &&
             inference_type  != TfLiteInterpreter::Type::Detector)
     { return true; }
+
+    TfLiteInterpreter interpreter(inference_type);
+    if(!interpreter.Create())
+    {
+        return false;
+    }
 
     cv::Mat img;
     cv::resize(original_img, img,
@@ -196,8 +206,7 @@ bool InferenceCameraImage(TfLiteInterpreter &interpreter,
     return true;
 }
 /////////////////////////////////////////////////////
-void InferenceCameraImageLoop(TfLiteInterpreter &interpreter,
-                              TfLiteInterpreter::Type inference_type,
+void InferenceCameraImageLoop(TfLiteInterpreter::Type inference_type,
                               bool log_images,
                               bool &killed)
 {
@@ -229,8 +238,7 @@ void InferenceCameraImageLoop(TfLiteInterpreter &interpreter,
             cv::imwrite(output_paths.original, original_img);
             LOG_C(MainLog, DEBUG) << "wrote file " << output_paths.original;
         }
-        if(!InferenceCameraImage(interpreter,
-                                 inference_type,
+        if(!InferenceCameraImage(inference_type,
                                  original_img,
                                  output_paths.inferenced,
                                  log_images))
@@ -263,20 +271,14 @@ int main(int argc, char**argv)
         else if(std::string(argv[idx]) == "--log") { log_images  = true; }
     }
 
-    TfLiteInterpreter interpreter(inference_type);
-    if(!interpreter.Create())
-    {
-        return -1;
-    }
-
     if(image_path == "/dev/camera")
     {
         bool killed = false;
-        InferenceCameraImageLoop(interpreter, inference_type, log_images, killed);
+        InferenceCameraImageLoop(inference_type, log_images, killed);
     }
     else
     {
-        InferenceImage(image_path, interpreter, inference_type, log_images);
+        InferenceImage(image_path, inference_type, log_images);
     }
 
     return 0;
