@@ -99,7 +99,7 @@ void PiCam::HandleFrameData(mmalpp::Generic_port &port, mmalpp::Buffer &buffer)
     CameraData &cam_data = port.get_userdata_as<CameraData>();
     uint8_t *rgb_data = cam_data.buffer_;
 
-    LOG_C(PicamLog, DEBUG) << "callback got data. buffer size: " << buffer.size()
+    LOG_C(PicamLog, DEBUG) << "Callback called with data, buffer size: " << buffer.size()
               << ", offset: " << buffer.offset()
               << ", length: " << buffer.size();
     if (buffer.size() > 0)

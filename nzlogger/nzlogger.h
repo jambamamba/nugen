@@ -1,7 +1,12 @@
 #pragma once
 
+#include <chrono>
+#include <condition_variable>
+#include <deque>
 #include <fstream>
+#include <future>
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <sys/syscall.h>
@@ -11,11 +16,7 @@ namespace nz {
 class Logger
 {
 public:
-    static Logger* Instance()
-    {
-        static Logger logger_;
-        return &logger_;
-    }
+    static Logger* Instance();
     enum Level
     {
         DEBUG,
@@ -44,12 +45,31 @@ public:
        std::ostringstream stream_;
        bool enabled_ = true;
     };
+    struct QueueData
+    {
+        std::string logline_;
+        std::time_t time_;
+        Level level_;
+
+        QueueData(const std::string &logline="", Level level=DEBUG)
+            : logline_(logline), time_(std::time(nullptr)), level_(level) {}
+    };
+
     std::size_t AddCategory(const std::string &name);
     const std::string &GetCategoryName(std::size_t logid);
+    static std::string GetExePathName();
+    static std::string GetExePath();
 protected:
     Logger();
+    ~Logger();
+    void LogWriter();
+    void PushBack(const QueueData &&data);
 
     std::map<std::size_t, std::string> dictionary_;
+    std::deque<Logger::QueueData> queue_;
+    std::mutex m_;
+    std::condition_variable cv_;
+    std::future<void> thread_;
 };
 }//nz
 
