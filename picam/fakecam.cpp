@@ -13,24 +13,26 @@ NEW_LOG_CATEGORY(FakeCam)
 FakeCam::FakeCam()
     : CameraInterface()
     , dir_("/home/dev/oosman/repos/nugen/logs/01-13-2021")
-    , it_(fs::directory_iterator(dir_))
-{
-    it_ = fs::begin(it_);
-}
+{}
 
 void FakeCam::CaptureFrame(CameraData &cam_data)
 {
-    if(it_ != fs::end(it_))
-    {
-        LOG_C(FakeCam, DEBUG) << it_->path();
-        cv::Mat image = cv::imread(it_->path().c_str());
-        memcpy(cam_data.buffer_, image.data, image.total() * image.elemSize());
+    std::string file = std::string(dir_) + "/frame01781.jpg";
+    char filename[64] = {0};
+    sprintf(filename, "/frame%05d.jpg", idx_++);
 
-        it_++;
+    std::string path = std::string(dir_) + filename;
+    if(!fs::exists(path))
+    {
+        stop_ = true;
+        return;
     }
+    LOG_C(FakeCam, DEBUG) << path;
+    cv::Mat image = cv::imread(path.c_str());
+    memcpy(cam_data.buffer_, image.data, image.total() * image.elemSize());
 }
 
 bool FakeCam::WaitForData()
 {
-    return (it_ != fs::end(it_));
+    return !stop_;
 }

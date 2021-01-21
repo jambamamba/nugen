@@ -317,5 +317,6 @@ int main(int argc, char**argv)
         InferenceImage(image_path, inference_type, log_images);
     }
 
+    LOG_C(Main, INFO) << "Exiting";
     return 0;
 }

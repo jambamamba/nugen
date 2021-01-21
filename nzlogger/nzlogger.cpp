@@ -1,5 +1,6 @@
 #include "nzlogger.h"
 
+#include <chrono>
 #include <experimental/filesystem>
 #include <iostream>
 #include <string.h>
@@ -40,7 +41,7 @@ std::ostringstream &Logger::LogLine::Stream()
 Logger::Logger()
 {
     thread_ = std::async(std::launch::async, [this]() {
-        while(true)
+        while(!die_)
         {
             LogWriter();
         }
@@ -48,6 +49,7 @@ Logger::Logger()
 }
 Logger::~Logger()
 {
+    die_ = true;
     thread_.wait();
 }
 Logger* Logger::Instance()
@@ -117,8 +119,10 @@ void Logger::LogWriter()
     Logger::QueueData data;
 
     {
+        using namespace std::chrono_literals;
         std::unique_lock<std::mutex> lk(m_);
-        cv_.wait(lk, [this]{ return queue_.size() > 0; });
+        if(!cv_.wait_for(lk, 2s, [this]{ return queue_.size() > 0; }))
+        { return; }
         data = queue_.front();
         queue_.pop_front();
     }

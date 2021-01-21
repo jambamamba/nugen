@@ -16,5 +16,6 @@ public:
 
 protected:
     std::string dir_;
-    fs::directory_iterator it_;
+    size_t idx_ = 0;
+    bool stop_ = false;
 };

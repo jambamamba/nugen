@@ -70,6 +70,7 @@ protected:
     std::mutex m_;
     std::condition_variable cv_;
     std::future<void> thread_;
+    bool die_ = false;
 };
 }//nz
 
