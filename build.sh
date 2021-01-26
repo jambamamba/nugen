@@ -4,8 +4,6 @@ set -xe
 export CC=/usr/bin/gcc
 export CXX=/usr/bin/g++
 
-export PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
-
 function parseArgs()
 {
   for change in $@; do
@@ -14,6 +12,24 @@ function parseArgs()
       #can assign value to a variable like below
       eval $1=$2;
   done
+}
+
+function setupToolchainVars()
+{
+    parseArgs "$@"
+
+    eval PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
+    eval A53_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/a53sdk/2.4.1/sysroots/aarch64-poky-linux
+
+    if [ "$arch" == "rpi" ]; then
+        eval TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR}
+        eval STRIP_TOOL="$TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip"
+        eval CXX_TOOL="$TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-g++"
+    elif [ "$arch" == "a53" ]; then
+        eval TOOLCHAIN_ROOT_DIR=${A53_TOOLCHAIN_ROOT_DIR}
+        eval STRIP_TOOL="${TOOLCHAIN_ROOT_DIR}/bin/arm-rpi-linux-gnueabihf-g++"
+        eval CXX_TOOL="${TOOLCHAIN_ROOT_DIR}/bin/arm-rpi-linux-gnueabihf-strip"
+    fi
 }
 
 function cloneRepos()
@@ -61,11 +77,11 @@ function buildlibusb()
                     cmake ..
                     make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
-        elif [ "$arch" == "rpi" ]; then
-            mkdir -p buildpi
-            pushd buildpi
+        else
+            mkdir -p "build${arch}"
+            pushd "build${arch}"
                     if [ "$clean" == "true" ]; then rm -fr *;fi
-                    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+                    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
                     make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         fi
@@ -84,11 +100,11 @@ function buildlibcurl()
                     cmake ..
                     make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
-        elif [ "$arch" == "rpi" ]; then
-            mkdir -p buildpi
-            pushd buildpi
+        else
+            mkdir -p "build${arch}"
+            pushd "build${arch}"
                     if [ "$clean" == "true" ]; then rm -fr *;fi
-                    #cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+                    #cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
                     #make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         fi
@@ -107,11 +123,11 @@ function buildopencv()
                     cmake -DOPENCV_FORCE_3RDPARTY_BUILD=ON ..
                     make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
-        elif [ "$arch" == "rpi" ]; then
-            mkdir -p buildpi
-            pushd buildpi
+        else
+            mkdir -p "build${arch}"
+            pushd "build${arch}"
                     if [ "$clean" == "true" ]; then rm -fr *;fi
-                    cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+                    cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
                     make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         fi
@@ -146,7 +162,7 @@ function buildlibedgetpu()
 
         #git checkout -f coral_crosstool1/cc_toolchain_config.bzl
         #sed -i "s/\$DOCKERUSER/$DOCKERUSER/gi" coral_crosstool1/cc_toolchain_config.bzl
-        TEST_TMPDIR=$BAZEL_CACHE_DIR PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} make
+        TEST_TMPDIR=$BAZEL_CACHE_DIR TOOLCHAIN_ROOT_DIR=${TOOLCHAIN_ROOT_DIR} make
 
         rm -f bazel-build
         bazelbuild=$(TEST_TMPDIR=$BAZEL_CACHE_DIR bazel info --experimental_repo_remote_exec 2>/dev/null | grep "execution_root:" | cut -d " " -f 2 | xargs dirname | xargs dirname)
@@ -159,15 +175,15 @@ function builduserland()
     parseArgs "$@"
 
     pushd userland
-		if [ "$arch" == "rpi" ]; then
-			mkdir -p buildpi
-				pushd buildpi
-				if [ "$clean" == "true" ]; then rm -fr *;fi
-				BUILD_MMAL=TRUE cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
-                                make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
-			popd
-		fi
-	popd
+        if [ "$arch" != "host" ]; then
+            mkdir -p "build${arch}"
+                pushd "build${arch}"
+                if [ "$clean" == "true" ]; then rm -fr *;fi
+                BUILD_MMAL=TRUE cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+                make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
+            popd
+        fi
+    popd
 }
 
 function buildmmalpp()
@@ -175,12 +191,12 @@ function buildmmalpp()
     parseArgs "$@"
 
     pushd MMALPP
-		if [ "$arch" == "rpi" ]; then
-			git checkout rgb
-			mkdir -p buildpi
-				if [ "$clean" == "true" ]; then rm -fr rgb-example;fi
-				#cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
-				$PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-g++ \
+        if [ "$arch" != "host" ]; then
+            git checkout rgb
+            mkdir -p "build${arch}"
+                if [ "$clean" == "true" ]; then rm -fr rgb-example;fi
+                #cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+                $CXX_TOOL \
 -I./mmalpp -I../userland -L../userland/build/lib -lmmal -lmmal_util -lmmal_components -lmmal_core -lmmal_vc_client \
 -lEGL -lGLESv2 -lOpenVG -lWFC -lbcm_host -lbrcmEGL -lbrcmGLESv2 -lbrcmOpenVG -lbrcmWFC \
 -lbrcmjpeg \
@@ -199,14 +215,14 @@ function buildmmalpp()
 -lvcos \
 -lvcsm \
 -std=c++17 rgb-example.cpp -o rgb-example
-		fi
-	popd
+        fi
+    popd
 }
 
 function buildProject()
 {
     parseArgs "$@"
-    echo "$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake"
+    echo "$TOOLCHAIN_ROOT_DIR/Toolchain.cmake"
 
     if [ "$arch" == "host" ]; then
         mkdir -p build
@@ -215,16 +231,13 @@ function buildProject()
             cmake ..
             make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
         popd
-    elif [ "$arch" == "rpi" ]; then
-        mkdir -p buildpi
-            pushd buildpi
+    else
+        mkdir -p "build${arch}"
+            pushd "build${arch}"
             if [ "$clean" == "true" ]; then rm -fr *;fi
-            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PI_TOOLCHAIN_ROOT_DIR/Toolchain-RaspberryPi.cmake ../
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
             make -j$(getconf _NPROCESSORS_ONLN)
         popd
-    else
-        echo "invalid arch supplied, should be  arch=host or arch=rpi"
-        exit -1
     fi
 }
 
@@ -232,21 +245,21 @@ function deployToPi()
 {
     parseArgs "$@"
 	
-    mkdir -p ./buildpi/stripped
-    cp -f ./buildpi/libedgetpu/libedgetpu.so ./buildpi/stripped/
-    cp -f ./buildpi/libusb/libusb.so ./buildpi/stripped/
-    cp -f ./userland/build/lib/*.so ./buildpi/stripped/
-    cp -f ./buildpi/detect ./buildpi/stripped/
-    find ./opencv/buildpi -name "lib*.so.*" -exec cp -Pf -- "{}" ./buildpi/stripped/ \;
-    chrpath -r '$ORIGIN/.' ./buildpi/stripped/detect
+    mkdir -p "./build${arch}/stripped"
+    cp -f "./build${arch}/libedgetpu/libedgetpu.so" "./build${arch}/stripped/"
+    cp -f "./build${arch}/libusb/libusb.so" "./build${arch}/stripped/"
+    cp -f ./userland/build/lib/*.so "./build${arch}/stripped/"
+    cp -f "./build${arch}/detect" "./build${arch}/stripped/"
+    find ./opencv/build${arch} -name "lib*.so.*" -exec cp -Pf -- "{}" ./build${arch}/stripped/ \;
+    chrpath -r '$ORIGIN/.' "./build${arch}/stripped/detect"
 
-    $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ./buildpi/stripped/detect
-    for filename in ./buildpi/stripped/lib*.so; do
-        $PI_TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip ${filename}
+    $STRIP_TOOL "./build${arch}/stripped/detect"
+    for filename in ./build${arch}/stripped/lib*.so; do
+        $STRIP_TOOL ${filename}
     done
 
     ssh-copy-id pi@${ip}
-    rsync -uav ./buildpi/stripped/* pi@${ip}:~/nugen
+    rsync -uav ./build${arch}/stripped/* pi@${ip}:~/nugen
     rsync -uav download-models.sh pi@${ip}:~/nugen
 }
 
@@ -254,18 +267,19 @@ function showResult()
 {
     parseArgs "$@"
     if [ "$arch" == "rpi" ]; then
-            file ./buildpi/minimal | cowsay
+        file ./build/minimal | cowsay
     else
-            file ./build/minimal | cowsay
+        file "./build${arch}/detect" | cowsay
     fi
 }
 
 function main()
 {
     parseArgs "$@"
+    setupToolchainVars arch="$arch"
 
     if [ "${deploy}" == "true" ] && [ "${ip}" != "" ]; then
-        deployToPi ip="${ip}" PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR}
+        deployToPi ip="${ip}" STRIP_TOOL="${STRIP_TOOL}"
         return 0
     fi
 
@@ -289,8 +303,8 @@ function main()
     #if [ "$arch" == "rpi" ]; then
     #	buildsystemd "$@"
     #fi
-	builduserland "$@"
-	buildmmalpp "$@"
+    builduserland "$@"
+    buildmmalpp "$@" CXX_TOOL=${CXX_TOOL}
     buildlibedgetpu "$@"
     buildProject "$@"
     showResult "$@"
