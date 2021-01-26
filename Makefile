@@ -50,8 +50,7 @@ endif
 
 #osm
 ifeq ($(CPU), rpi)
-#PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/pi make
-BAZEL_BUILD_FLAGS_Linux += --verbose_failures --linkopt=-L$(PI_TOOLCHAIN_ROOT_DIR)/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/lib --linkopt=-L$(shell pwd)/../libusb/buildpi/
+BAZEL_BUILD_FLAGS_Linux += --verbose_failures --linkopt=-L$(TOOLCHAIN_ROOT_DIR)/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/lib --linkopt=-L$(shell pwd)/../libusb/buildpi/
 endif
 
 # Darwin-specific parameters
@@ -65,7 +64,7 @@ BAZEL_BUILD_FLAGS := --sandbox_debug --subcommands \
   --compilation_mode=$(COMPILATION_MODE) \
   --define darwinn_portable=1 \
   --action_env PYTHON_BIN_PATH=$(shell which $(PYTHON3)) \
-  --action_env PI_TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR} \
+  --action_env TOOLCHAIN_ROOT_DIR=${TOOLCHAIN_ROOT_DIR} \
   --cpu=$(CPU) \
   --embed_label='TENSORFLOW_COMMIT=$(shell grep "TENSORFLOW_COMMIT =" $(MAKEFILE_DIR)/workspace.bzl | grep -o '[0-9a-f]\{40\}')' \
   --stamp
