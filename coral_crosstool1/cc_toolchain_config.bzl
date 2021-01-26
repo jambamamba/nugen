@@ -23,7 +23,7 @@ load(
     "with_feature_set",
 )
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
-load("@pi_toolchain//:pi_toolchain_root.bzl", "PI_TOOLCHAIN_ROOT_DIR")
+load("@pi_toolchain//:pi_toolchain_root.bzl", "TOOLCHAIN_ROOT_DIR")
 
 ALL_COMPILE_ACTIONS = [
     ACTION_NAMES.c_compile,
@@ -110,20 +110,20 @@ CXX_BUILTIN_INCLUDE_DIRECTORIES = {
         "/usr/include",
     ],
     "rpi": [
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/arm-rpi-linux-gnueabihf/bits/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/backward/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/bits/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/debug/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/ext/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/asm-generic/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/asm/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/bits/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/sys/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/lib/gcc/arm-rpi-linux-gnueabihf/8.3.0/include-fixed/" % PI_TOOLCHAIN_ROOT_DIR,
-        "%s/x-tools/arm-rpi-linux-gnueabihf/lib/gcc/arm-rpi-linux-gnueabihf/8.3.0/" % PI_TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/arm-rpi-linux-gnueabihf/bits/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/backward/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/bits/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/debug/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/include/c++/8.3.0/ext/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/asm-generic/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/asm/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/bits/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/include/sys/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/lib/gcc/arm-rpi-linux-gnueabihf/8.3.0/include-fixed/" % TOOLCHAIN_ROOT_DIR,
+        "%s/x-tools/arm-rpi-linux-gnueabihf/lib/gcc/arm-rpi-linux-gnueabihf/8.3.0/" % TOOLCHAIN_ROOT_DIR,
     ],
 }
 
@@ -134,7 +134,7 @@ TOOL_PATH_PREFIX = {
     "armv7a":  "/usr/bin/arm-linux-gnueabihf-",
     "armv6":   "/tools/arm-bcm2708/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-",
     "aarch64": "/usr/bin/aarch64-linux-gnu-",
-    "rpi":     "%s/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-" % PI_TOOLCHAIN_ROOT_DIR,
+    "rpi":     "%s/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-" % TOOLCHAIN_ROOT_DIR,
 }
 
 HOST_SYSTEM_NAME = "x86_64-linux-gnu"
