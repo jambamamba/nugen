@@ -18,7 +18,6 @@ OUT_DIR := $(MAKEFILE_DIR)/out
 OS := $(shell uname -s)
 
 ifeq ($(OS),Linux)
-#CPU ?= k8
 CPU ?= rpi
 else ifeq ($(OS),Darwin)
 CPU ?= darwin
@@ -39,7 +38,6 @@ BAZEL_OUT_DIR := $(MAKEFILE_DIR)/bazel-out/$(CPU)-$(COMPILATION_MODE)/bin
 
 # Linux-specific parameters
 BAZEL_BUILD_TARGET_Linux := //tflite/public:libedgetpu_direct_all.so
-#BAZEL_BUILD_FLAGS_Linux := --crosstool_top=@crosstool//:toolchains --compiler=gcc
 BAZEL_BUILD_FLAGS_Linux := -s --crosstool_top=@coral_crosstool1//:toolchains --cpu=$(CPU) --compiler=rpi
 BAZEL_BUILD_OUTPUT_FILE_Linux := libedgetpu.so.1.0
 BAZEL_BUILD_OUTPUT_SYMLINK_Linux := libedgetpu.so.1
@@ -50,7 +48,7 @@ endif
 
 #osm
 ifeq ($(CPU), rpi)
-BAZEL_BUILD_FLAGS_Linux += --verbose_failures --linkopt=-L$(TOOLCHAIN_ROOT_DIR)/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/lib --linkopt=-L$(shell pwd)/../libusb/buildpi/
+BAZEL_BUILD_FLAGS_Linux += --verbose_failures --linkopt=-L$(TOOLCHAIN_ROOT_DIR)/x-tools/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/usr/lib --linkopt=-L$(shell pwd)/../libusb/buildrpi/
 endif
 
 # Darwin-specific parameters

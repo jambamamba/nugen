@@ -7,5 +7,5 @@ def _impl(repository_ctx):
 
 pi_toolchain_repository = repository_rule(
     implementation=_impl,
-    environ = ["PI_TOOLCHAIN_ROOT_DIR"],
+    environ = ["TOOLCHAIN_ROOT_DIR"],
 )
