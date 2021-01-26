@@ -18,8 +18,8 @@ function setupToolchainVars()
 {
     parseArgs "$@"
 
-    eval PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/rpi
-    eval A53_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/a53sdk/2.4.1/sysroots/aarch64-poky-linux
+    eval PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/raspberrypi0
+    eval A53_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/arm53sdk/2.4.1/sysroots/aarch64-poky-linux
 
     if [ "$arch" == "rpi" ]; then
         eval TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR}
@@ -266,8 +266,8 @@ function deployToPi()
 function showResult()
 {
     parseArgs "$@"
-    if [ "$arch" == "rpi" ]; then
-        file ./build/minimal | cowsay
+    if [ "$arch" == "host" ]; then
+        file ./build/detect | cowsay
     else
         file "./build${arch}/detect" | cowsay
     fi

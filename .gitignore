@@ -1,6 +1,9 @@
 CMakeLists.txt.user
 build
-buildpi
+buildrpi
+buildrpi0
+buildrpi4
+builda53
 libedgetpu
 libusb
 curl
