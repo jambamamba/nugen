@@ -18,17 +18,18 @@ function setupToolchainVars()
 {
     parseArgs "$@"
 
-    eval PI_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/raspberrypi0
-    eval A53_TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/arm53sdk/2.4.1/sysroots/aarch64-poky-linux
-
-    if [ "$arch" == "rpi" ]; then
-        eval TOOLCHAIN_ROOT_DIR=${PI_TOOLCHAIN_ROOT_DIR}
+    if [ "$arch" == "rpi0" ]; then
+        eval TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/raspberrypi0
         eval STRIP_TOOL="$TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip"
         eval CXX_TOOL="$TOOLCHAIN_ROOT_DIR/x-tools/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-g++"
+    elif [ "$arch" == "rpi4" ]; then
+        eval TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/raspberrypi4
+	eval STRIP_TOOL="$TOOLCHAIN_ROOT_DIR/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu-strip"
+	eval CXX_TOOL="$TOOLCHAIN_ROOT_DIR/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu-g++"
     elif [ "$arch" == "a53" ]; then
-        eval TOOLCHAIN_ROOT_DIR=${A53_TOOLCHAIN_ROOT_DIR}
-        eval STRIP_TOOL="${TOOLCHAIN_ROOT_DIR}/bin/arm-rpi-linux-gnueabihf-g++"
-        eval CXX_TOOL="${TOOLCHAIN_ROOT_DIR}/bin/arm-rpi-linux-gnueabihf-strip"
+        eval TOOLCHAIN_ROOT_DIR=${HOME}/${DOCKERUSER}/.leila/toolchains/arm53sdk
+        eval STRIP_TOOL="${TOOLCHAIN_ROOT_DIR}/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-strip"
+        eval CXX_TOOL="${TOOLCHAIN_ROOT_DIR}/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-g++"
     fi
 }
 
@@ -127,11 +128,72 @@ function buildopencv()
             mkdir -p "build${arch}"
             pushd "build${arch}"
                     if [ "$clean" == "true" ]; then rm -fr *;fi
-                    cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+		    if [ "$arch" == "rpi0" ]; then
+                        cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+			elif [ "$arch" == "rpi4" ] || [ "$arch" == "a53" ]; then
+                        cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DPNG_ARM_NEON_OPT=0 -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+                    fi
                     make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         fi
     popd
+}
+
+function buildlibcap()
+{
+    pushd /home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/aarch64-rpi4-linux-gnu/sysroot/usr/include/sys
+    sudo ln -s /home/dev/oosman/repos/nugen/libcap/libcap/include/sys/capability.h .
+    sudo ln -s /home/dev/oosman/repos/nugen/libcap/libcap/include/sys/securebits.h .
+    popd
+    pushd /home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/aarch64-rpi4-linux-gnu/sysroot/usr/lib
+    sudo ln -s /home/dev/oosman/repos/nugen/libcap/libcap/libcap.so .
+    popd
+}
+
+function buildlibmount()
+{
+    git clean -dxf
+    ./autogen.sh
+    export ac_cs_linux_vers=4
+    export CFLAGS=
+    export CPPFLAGS=
+    export CC=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu-gcc
+    export CPP=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu-g++
+    export AR=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu-ar
+    export LDFLAGS=-L/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/aarch64-rpi4-linux-gnu/sysroot/usr/lib
+    ./configure \
+    --host=aarch64-rpi4-linux-gnu \
+    LDFLAGS=-L/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/aarch64-rpi4-linux-gnu/sysroot/usr/lib \
+    --without-tinfo \
+    --without-ncurses \
+    --disable-ipv6 \
+    --disable-pylibmount \
+    --enable-static-programs=fdisk,sfdisk,whereis \
+    --prefix=/opt/util-linux/arm \
+    --bindir=/opt/util-linux/arm/bin \
+    --sbindir=/opt/util-linux/arm/sbin \
+    PKG_CONFIG_PATH=/usr/bin/pkg-config \
+    PKG_CONFIG_LIBDIR=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/aarch64-rpi4-linux-gnu/sysroot/usr/lib \
+    AR=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu-ar \
+    RANLIB=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu--ranlib \
+    CC_FOR_BUILD=/usr/bin/gcc \
+
+    ./configure \
+            --host=aarch64-rpi4-linux-gnu \
+	    --prefix=`pwd`/out \
+	    --enable-shared \
+	    --disable-seccomp \
+	    CC=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu-gcc \
+	    CFLAGS= \
+	    CPP=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu-g++ \
+	    CPPFLAGS=-I/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/aarch64-rpi4-linux-gnu/sysroot/usr/include \
+	    LDFLAGS=-L/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/aarch64-rpi4-linux-gnu/sysroot/usr/lib \
+	    AR=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu-ar \
+	    RANLIB=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/bin/aarch64-rpi4-linux-gnu--ranlib \
+	    CC_FOR_BUILD=/usr/bin/gcc \
+	    CFLAGS_FOR_BUILD= \
+	    PKG_CONFIG_PATH=/usr/bin/pkg-config \
+	    PKG_CONFIG_LIBDIR=/home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/aarch64-rpi4-linux-gnu/sysroot/usr/lib
 }
 
 function buildsystemd()
@@ -139,7 +201,16 @@ function buildsystemd()
     parseArgs "$@"
     pushd systemd
             git checkout raspi0
-            /home/dev/.local/bin/meson --cross-file CROSS_FILE build
+	    #meson --reconfigure ./build
+	    #meson --cross-file CROSS_FILE  -Dincludedir=../libcap/libcap/include  build
+#--includedir /home/dev/oosman/repos/nugen/libcap/libcap/include
+#ninja -C build clean #where build is the build directry
+rm -fr build
+meson setup -Dxz=false -Dopenssl=false \
+--prefix /home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/aarch64-rpi4-linux-gnu/sysroot/usr \
+--libdir /home/dev/oosman/.leila/toolchains/raspberrypi4/x-tools/aarch64-rpi4-linux-gnu/aarch64-rpi4-linux-gnu/sysroot/usr/lib \
+--cross-file CROSS_FILE \
+build
             make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
     popd
 }
@@ -151,8 +222,12 @@ function buildlibedgetpu()
     pushd libedgetpu
         if [ "$arch" == "host" ]; then
                 git checkout x86_64
-        elif [ "$arch" == "rpi" ]; then
+		elif [ "$arch" == "rpi0" ]; then
                 git checkout raspi0
+		elif [ "$arch" == "rpi4" ]; then
+		git checkout raspi4
+		elif [ "$arch" == "a53" ]; then
+                git checkout a53a
         fi
 
         if [ ! -d tensorflow ]; then ln -s ../tensorflow tensorflow; fi
@@ -179,7 +254,11 @@ function builduserland()
             mkdir -p "build${arch}"
                 pushd "build${arch}"
                 if [ "$clean" == "true" ]; then rm -fr *;fi
-                BUILD_MMAL=TRUE cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+		if [ "$arch" == "rpi0" ]; then
+                    BUILD_MMAL=TRUE cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+		elif [ "$arch" == "rpi4" ] || [ "$arch" == "a53" ]; then
+                    BUILD_MMAL=TRUE cmake -DCMAKE_BUILD_TYPE=Release -DARM64=ON -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+                fi
                 make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         fi
@@ -191,13 +270,18 @@ function buildmmalpp()
     parseArgs "$@"
 
     pushd MMALPP
-        if [ "$arch" != "host" ]; then
+        if [ "$arch" = "rpi0" ]; then # || [ "$arch" = "rpi4" ] #todo need to fix -I include paths
             git checkout rgb
             mkdir -p "build${arch}"
                 if [ "$clean" == "true" ]; then rm -fr rgb-example;fi
                 #cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
                 $CXX_TOOL \
--I./mmalpp -I../userland -L../userland/build/lib -lmmal -lmmal_util -lmmal_components -lmmal_core -lmmal_vc_client \
+-I./mmalpp -I../userland \
+-I${TOOLCHAIN_ROOT_DIR}/sysroots/aarch64-poky-linux/usr/include/c++/8.2.0 \
+-I${TOOLCHAIN_ROOT_DIR}/sysroots/aarch64-poky-linux/usr/include/c++/8.2.0/aarch64-poky-linux \
+-I${TOOLCHAIN_ROOT_DIR}/sysroots/aarch64-poky-linux/usr/include \
+-L../userland/build/lib \
+-lmmal -lmmal_util -lmmal_components -lmmal_core -lmmal_vc_client \
 -lEGL -lGLESv2 -lOpenVG -lWFC -lbcm_host -lbrcmEGL -lbrcmGLESv2 -lbrcmOpenVG -lbrcmWFC \
 -lbrcmjpeg \
 -lcontainers \
@@ -285,14 +369,6 @@ function main()
 
     if [ "$arch" == "" ]; then
         arch="host"
-#        while true; do
-#            read -p "Do you wish to build for host \n(next time try ./build.sh arch=host or ./build.sh arch=rpi)? " yn
-#            case $yn in
-#                [Yy]* ) arch="host"; break;;
-#                [Nn]* ) arch="rpi"; break;;
-#                * ) echo "Please answer yes or no.";;
-#            esac
-#        done
     fi
 
     cloneRepos "$@"
@@ -300,7 +376,7 @@ function main()
     buildlibcurl "$@"
     buildopencv "$@"
     #cannot build systemd, for now use libudev.so checked into libedgetpu repo, later remove it when this is building:
-    #if [ "$arch" == "rpi" ]; then
+    #if [ "$arch" == "rpi0" ] || [ "$arch" = "rpi4" ]; then
     #	buildsystemd "$@"
     #fi
     builduserland "$@"
@@ -313,5 +389,6 @@ function main()
 main "$@"
 
 # ./build.sh arch=host clean=true|false #false is default
-# ./build.sh arch=rpi clean=true|false #false is default
+# ./build.sh arch=rpi0 clean=true|false #false is default
+# ./build.sh arch=rpi4 clean=true|false #false is default
 # ./build.sh deploy=true ip=192.168.1.26
