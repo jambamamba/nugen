@@ -5,6 +5,7 @@ buildrpi0
 buildrpi4
 builda53
 libedgetpu
+libcap
 libusb
 curl
 models
@@ -14,3 +15,4 @@ tensorflow
 userland
 MMALPP
 logs
+
