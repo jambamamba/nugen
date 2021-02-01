@@ -370,7 +370,7 @@ function main()
     if [ "$arch" == "" ]; then
         arch="host"
     fi
-
+    
     cloneRepos "$@"
     buildlibusb "$@"
     buildlibcurl "$@"
@@ -391,4 +391,4 @@ main "$@"
 # ./build.sh arch=host clean=true|false #false is default
 # ./build.sh arch=rpi0 clean=true|false #false is default
 # ./build.sh arch=rpi4 clean=true|false #false is default
-# ./build.sh deploy=true ip=192.168.1.26
+# ./build.sh arch=rpi0 deploy=true ip=192.168.1.26
