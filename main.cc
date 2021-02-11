@@ -24,49 +24,59 @@ NEW_LOG_CATEGORY(Main)
 namespace fs = std::experimental::filesystem;
 namespace  {
 /////////////////////////////////////////////////////
-bool UsbDeviceMounted()
+bool UsbStorageDeviceMounted()
 {
-    LOG_C(Main, DEBUG) << "UsbDeviceMounted";
     struct stat info;
     const std::string mount_point("/dev/disk/by-uuid/31cc5498-c35c-4b67-a23e-31dc5499fc92");
     if( stat( mount_point.c_str(), &info ) != 0 )
     {
-        LOG_C(Main, DEBUG) << "Cannot access " << mount_point;
+        LOG_C(Main, WARNING) << "Cannot access USB storage device at mount point: " << mount_point;
         return false;
     }
     else if( info.st_mode & S_IFLNK )
     {
-        LOG_C(Main, DEBUG) << "Found USB device " << mount_point;
+        LOG_C(Main, DEBUG) << "Found USB storage device " << mount_point;
         return true;
     }
     return false;
 }
+
+/////////////////////////////////////////////////////
+void RecursivelyDeleteDirectory(const std::string &dir)
+{
+    for (const auto& entry : fs::directory_iterator(dir))
+    {
+        if(fs::is_directory(entry.path()))
+        {RecursivelyDeleteDirectory(entry.path());}
+        else
+        {fs::remove(entry.path());}
+    }
+}
+
 /////////////////////////////////////////////////////
 struct OutputFilePaths
 {
     std::string original;
     std::string inferenced;
 };
+
 /////////////////////////////////////////////////////
 std::string PrepareOutputImageDirectory()
 {
     std::string output_path("/tmp/");
-    if(UsbDeviceMounted())
+    if(UsbStorageDeviceMounted())
     {
         output_path = std::string("/media/usb-drive/nugen/");
         fs::create_directories(output_path);
-        for (const auto& entry : fs::directory_iterator(output_path))
-        {fs::remove_all(entry.path());}
+        RecursivelyDeleteDirectory(output_path);
     }
     std::string raw = std::string(output_path) + "raw";
     fs::create_directories(raw);
-    for (const auto& entry : fs::directory_iterator(raw))
-    {fs::remove_all(entry.path());}
+    RecursivelyDeleteDirectory(raw);
 
     std::string inf = std::string(output_path) + "inf";
     fs::create_directories(inf);
-    for (const auto& entry : fs::directory_iterator(inf))
-    {fs::remove_all(entry.path());}
+    RecursivelyDeleteDirectory(inf);
 
     return output_path;
 }
@@ -138,43 +148,6 @@ void ShowResults(const TfLiteInterpreter::Result &&res,
     }
 }
 /////////////////////////////////////////////////////
-void InferenceImage(const std::string &image_path,
-                    TfLiteInterpreter::Type inference_type,
-                    bool log_images)
-{
-    if(inference_type != TfLiteInterpreter::Type::Classifier &&
-            inference_type  != TfLiteInterpreter::Type::Detector)
-    { return; }
-
-    TfLiteInterpreter interpreter(inference_type);
-    if(!interpreter.Create())
-    {
-        return;
-    }
-
-    cv::Mat img;
-    cv::Mat original_img = cv::imread(image_path);
-    cv::resize(original_img, img,
-               cv::Size(interpreter.GetImageDimensions().width_,
-                        interpreter.GetImageDimensions().height_),
-               0, 0, cv::INTER_NEAREST);
-    if(!interpreter.LoadImage(img.data, img.total() * img.elemSize()))
-    {
-        return;
-    }
-
-    std::string inferenced_file_path(image_path);
-    size_t pos = inferenced_file_path.rfind(".");
-    inferenced_file_path.insert(pos, ".inferenced");
-
-    ShowResults(interpreter.Inference(),
-                original_img,
-                img,
-                inferenced_file_path,
-                inference_type,
-                log_images);
-}
-/////////////////////////////////////////////////////
 bool InferenceCameraImage(TfLiteInterpreter::Type inference_type,
                           TfLiteInterpreter &interpreter,
                           cv::Mat &original_img,
@@ -229,13 +202,14 @@ struct CameraBuffers
     uint8_t *rgb_data_[num_buffers_];
 };
 /////////////////////////////////////////////////////
-void InferenceCameraImageLoop(TfLiteInterpreter::Type inference_type,
+void InferenceCameraImageLoop(const std::string &image_path,
+                              TfLiteInterpreter::Type inference_type,
                               bool log_images,
                               bool &killed)
 {
     CameraBuffers buffers;
     int idx = 0;
-    auto &camera = CameraFactory::Camera();
+    auto &camera = CameraFactory::Camera(image_path);
     std::string output_path = PrepareOutputImageDirectory();
 
     TfLiteInterpreter interpreter(inference_type);
@@ -307,15 +281,8 @@ int main(int argc, char**argv)
         else if(token == "--log") { log_images  = true; }
     }
 
-    if(image_path == "/dev/camera")
-    {
-        bool killed = false;
-        InferenceCameraImageLoop(inference_type, log_images, killed);
-    }
-    else
-    {
-        InferenceImage(image_path, inference_type, log_images);
-    }
+    bool killed = false;
+    InferenceCameraImageLoop(image_path, inference_type, log_images, killed);
 
     LOG_C(Main, INFO) << "Exiting";
     return 0;

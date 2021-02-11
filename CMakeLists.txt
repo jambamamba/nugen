@@ -6,7 +6,7 @@ PROJECT(${PROJ})
 set(CMAKE_C_FLAGS "-Wall -pthread")
 set(CMAKE_C_FLAGS_DEBUG "-g -O0")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14 -lstdc++ -fPIC") #c++17 does not work with absl
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14 -fPIC") #c++17 does not work with absl # do we need this flag? -> -lstdc++
 set(CMAKE_CXX_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
 set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
 #set(CMAKE_BUILD_TYPE Debug)
@@ -39,24 +39,20 @@ if ("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "") # build for host
         /lib/x86_64-linux-gnu/
         ${CMAKE_SOURCE_DIR}/opencv/build/lib/
     )
-    set(SOURCES
-        picam/fakecam.cpp
-        picam/fakecam.h
-    )
 else() # cross compile
     set(INCLUDE_DIRS
         ${INCLUDE_DIRS}
-        opencv/buildpi/
+	opencv/build${arch}/
         MMALPP/
         userland/
         userland/build/lib
         )
     set(LINK_DIRS
         ${CMAKE_SOURCE_DIR}/libedgetpu/out/direct/rpi/
-        ${CMAKE_SOURCE_DIR}/libedgetpu/libusb/buildpi/
+	${CMAKE_SOURCE_DIR}/libedgetpu/libusb/build${arch}/
         ${CMAKE_SOURCE_DIR}/libedgetpu/bazel-build/
         ${CMAKE_SOURCE_DIR}/lib/ #for libudev.so
-        ${CMAKE_SOURCE_DIR}/opencv/buildpi/lib/
+	${CMAKE_SOURCE_DIR}/opencv/build${arch}/lib/
         ${CMAKE_SOURCE_DIR}/userland/build/lib
     )
     set(LIBS ${LIBS}
@@ -65,8 +61,8 @@ else() # cross compile
         mmal_omxutil mmal_util mmal_vc_client openmaxil vchiq_arm vcos vcsm
     )
     set(SOURCES
-        picam/picam.cpp
-        picam/picam.h
+	picam/picam.cpp
+	picam/picam.h
     )
     add_definitions(-DUSE_PICAM)
     set_source_files_properties(picam.cpp PROPERTIES CMAKE_CXX_FLAGS  -std=c++17)
@@ -79,6 +75,8 @@ set(SOURCES
     picam/camera_factory.cpp
     picam/camera_factory.h
     picam/camera_interface.h
+    picam/fakecam.cpp
+    picam/fakecam.h
     tfhelper/adapter.cc
     tfhelper/adapter.h
     tfhelper/bbox.h

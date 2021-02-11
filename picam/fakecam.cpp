@@ -10,14 +10,13 @@
 
 NEW_LOG_CATEGORY(FakeCam)
 
-FakeCam::FakeCam()
+FakeCam::FakeCam(const std::string &image_dir)
     : CameraInterface()
-    , dir_("/home/dev/oosman/repos/nugen/logs/01-13-2021")
+    , dir_(image_dir)
 {}
 
 void FakeCam::CaptureFrame(CameraData &cam_data)
 {
-    std::string file = std::string(dir_) + "/frame01781.jpg";
     char filename[64] = {0};
     sprintf(filename, "/frame%05d.jpg", idx_++);
 

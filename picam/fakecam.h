@@ -10,7 +10,7 @@ namespace fs = std::experimental::filesystem;
 class FakeCam : public CameraInterface
 {
 public:
-    FakeCam();
+    FakeCam(const std::string &image_dir);
     virtual void CaptureFrame(CameraData &cam_data) override;
     virtual bool WaitForData() override;
 

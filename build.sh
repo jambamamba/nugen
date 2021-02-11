@@ -130,9 +130,14 @@ function buildopencv()
                     if [ "$clean" == "true" ]; then rm -fr *;fi
 		    if [ "$arch" == "rpi0" ]; then
                         cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
-			elif [ "$arch" == "rpi4" ] || [ "$arch" == "a53" ]; then
-                        cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DPNG_ARM_NEON_OPT=0 -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
-                    fi
+		    elif  [ "$arch" == "rpi4" ]; then
+		        cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+			echo "#undef __ARM_NEON" > /tmp/undef_neon
+			cat ../3rdparty/libpng/pngpriv.h >> /tmp/undef_neon
+			mv /tmp/undef_neon ../3rdparty/libpng/pngpriv.h
+		    elif  [ "$arch" == "a53" ]; then
+		        cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_FORCE_3RDPARTY_BUILD=ON -DPNG_ARM_NEON_OPT=0 -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+		    fi
                     make -j$(getconf _NPROCESSORS_ONLN) VERBOSE=1
             popd
         fi
@@ -319,7 +324,7 @@ function buildProject()
         mkdir -p "build${arch}"
             pushd "build${arch}"
             if [ "$clean" == "true" ]; then rm -fr *;fi
-            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
+	    cmake -Darch=${arch} -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_ROOT_DIR/Toolchain.cmake ../
             make -j$(getconf _NPROCESSORS_ONLN)
         popd
     fi
@@ -370,7 +375,7 @@ function main()
     if [ "$arch" == "" ]; then
         arch="host"
     fi
-    
+
     cloneRepos "$@"
     buildlibusb "$@"
     buildlibcurl "$@"
@@ -388,7 +393,14 @@ function main()
 
 main "$@"
 
-# ./build.sh arch=host clean=true|false #false is default
-# ./build.sh arch=rpi0 clean=true|false #false is default
-# ./build.sh arch=rpi4 clean=true|false #false is default
-# ./build.sh arch=rpi0 deploy=true ip=192.168.1.26
+#build
+#./build.sh arch=host clean=true|false #false is default
+#./build.sh arch=rpi0 clean=true|false #false is default
+#./build.sh arch=rpi4 clean=true|false #false is default
+#
+#deploy
+#./build.sh arch=rpi0 deploy=true ip=192.168.1.26
+#
+#run
+#./detect /dev/camera --detect --log
+#./detect logs/01-13-2021 --detect --log
