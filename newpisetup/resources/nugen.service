@@ -1,0 +1,16 @@
+[Unit]
+Description=Nugen Service
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+WorkingDirectory=/home/pi/nugen/
+ExecStart=/usr/bin/env /home/pi/nugen/detect /dev/camera --detect --log
+StartLimitAction=reboot
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
