@@ -404,3 +404,9 @@ main "$@"
 #run
 #./detect /dev/camera --detect --log
 #./detect logs/01-13-2021 --detect --log
+#
+#retrieve logs from pi
+#rsync -uav pi@192.168.1.73:/media/usb-drive/nugen /tmp
+#
+#logs from service on pi
+#journalctl -u nugen.service
