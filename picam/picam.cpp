@@ -73,7 +73,7 @@ PiCam::~PiCam()
 void PiCam::CommitStillPortFormat()
 {
     MMAL_ES_FORMAT_T * format = camera_.output(2).format();
-    format->encoding = MMAL_ENCODING_RGB24;
+    format->encoding = MMAL_ENCODING_BGR24;
     format->es->video.width = 640;
     format->es->video.height = 480;
     format->es->video.crop.x = 0;

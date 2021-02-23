@@ -399,7 +399,7 @@ main "$@"
 #./build.sh arch=rpi4 clean=true|false #false is default
 #
 #deploy
-#./build.sh arch=rpi0 deploy=true ip=192.168.1.26
+#./build.sh arch=rpi0 deploy=true ip=192.168.1.73
 #
 #run
 #./detect /dev/camera --detect --log
