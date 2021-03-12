@@ -26,23 +26,14 @@ public:
     };
     struct LogLine
     {
-       LogLine(const char *file,
-               int line,
-               const char *function,
-               Level level,
-               std::size_t logid);
-
+       LogLine(Level level);
        ~LogLine();
        std::ostringstream &Stream();
 
     protected:
-       const char *file_;
-       int line_;
-       const char *function_;
-       Level level_;
-       std::size_t logid_;
        std::ofstream dev_null_stream_;
        std::ostringstream stream_;
+       Level level_;
        bool enabled_ = true;
     };
     struct QueueData
@@ -55,16 +46,19 @@ public:
             : logline_(logline), time_(std::time(nullptr)), level_(level) {}
     };
 
+    void SetLogDirectory(const std::string &dir = "/tmp");
     std::size_t AddCategory(const std::string &name);
     const std::string &GetCategoryName(std::size_t logid);
     static std::string GetExePathName();
     static std::string GetExePath();
+    static std::string GetExeName();
 protected:
     Logger();
     ~Logger();
     void LogWriter();
     void PushBack(const QueueData &&data);
 
+    std::string log_file_;
     std::map<std::size_t, std::string> dictionary_;
     std::deque<Logger::QueueData> queue_;
     std::mutex m_;
@@ -80,6 +74,8 @@ protected:
    }\
 
 #define LOG_C(logid, level)  \
-    nz::Logger::LogLine(__FILE__, __LINE__, static_cast<const char*>(__PRETTY_FUNCTION__), nz::Logger::level, nz::logid).Stream() \
-    << "[tid:" << syscall(SYS_gettid) << "][" << nz::Logger::Instance()->GetCategoryName(nz::logid) << "] "
+    nz::Logger::LogLine(nz::Logger::level).Stream() \
+    << "[tid:" << syscall(SYS_gettid) \
+    << "][" << nz::Logger::Instance()->GetCategoryName(nz::logid) \
+    << "][" << __FILE__ << ":" << __LINE__ << "] "//[" << __PRETTY_FUNCTION__ << "] "
 

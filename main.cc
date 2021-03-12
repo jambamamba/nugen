@@ -78,6 +78,8 @@ std::string PrepareOutputImageDirectory()
     fs::create_directories(inf);
     RecursivelyDeleteDirectory(inf);
 
+    nz::Logger::Instance()->SetLogDirectory(std::string(output_path) + "logs");
+
     return output_path;
 }
 /////////////////////////////////////////////////////

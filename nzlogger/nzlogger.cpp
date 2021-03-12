@@ -10,16 +10,8 @@ namespace fs = std::experimental::filesystem;
 
 namespace nz {
 
-Logger::LogLine::LogLine(const char *file,
-        int line,
-        const char *function,
-        Level level,
-        std::size_t logid)
-    : file_(file)
-    , line_(line)
-    , function_(function)
-    , level_(level)
-    , logid_(logid)
+Logger::LogLine::LogLine(Level level)
+    : level_(level)
 {
     dev_null_stream_.open("/dev/null", std::ofstream::out | std::ofstream::app);
 }
@@ -40,6 +32,7 @@ std::ostringstream &Logger::LogLine::Stream()
 
 Logger::Logger()
 {
+    SetLogDirectory();
     thread_ = std::async(std::launch::async, [this]() {
         while(!die_)
         {
@@ -57,7 +50,11 @@ Logger* Logger::Instance()
     static Logger logger_;
     return &logger_;
 }
-
+void Logger::SetLogDirectory(const std::string &dir)
+{
+    fs::create_directories(dir);
+    log_file_ = dir + "/" + Logger::GetExeName();
+}
 std::size_t Logger::AddCategory(const std::string &name)
 {
     std::size_t key = -1;
@@ -108,6 +105,20 @@ std::string Logger::GetExePath()   // path without executable file name
    }
    return fullPath.substr(0, pos+1);
 }
+std::string Logger::GetExeName()   // exe name without path
+{
+   auto fullPath = GetExePathName();
+   if(fullPath.size() == 0)
+   {
+      return std::string("");
+   }
+   auto pos = static_cast<int>(fullPath.find_last_of("/"));
+   if(pos == -1)
+   {
+      return fullPath;
+   }
+   return fullPath.substr(pos+1);
+}
 void Logger::PushBack(const QueueData &&data)
 {
     std::unique_lock<std::mutex> lk(m_);
@@ -143,7 +154,7 @@ void Logger::LogWriter()
     oss << "[" << timestamp << "]" << data.logline_ << "\033[0m" << "\n";
     std::cout << oss.str();
 
-    FILE* fp = fopen("/tmp/nugen.log", "a+t");
+    FILE* fp = fopen(log_file_.c_str(), "a+t");
     fwrite(timestamp, strlen(timestamp), 1, fp);
     fwrite(data.logline_.c_str(), data.logline_.size(), 1, fp);
     fwrite("\n", 1, 1, fp);
