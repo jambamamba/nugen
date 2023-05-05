@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "executable/executable_generated.h"
 #include "port/logging.h"
 #include "port/ptr_util.h"
@@ -30,10 +31,11 @@ namespace tensor_util {
 // Enum for Tensor shape dimension index.
 enum ShapeDimension {
   kBatch = 0,
-  kY = 1,
-  kX = 2,
-  kZ = 3,
-  kNumDimensions = 4,
+  kW = 1,
+  kY = 2,
+  kX = 3,
+  kZ = 4,
+  kNumDimensions = 5,
 };
 
 // Creates a tensor shape object for the dimension lengths.
@@ -41,6 +43,9 @@ TensorShapeT MakeTensorShape(const std::vector<int>& dimensions);
 
 // Create a tensor shape object with range information for each dimension.
 TensorShapeT MakeTensorShape(const std::vector<Range>& ranges);
+
+// TODO: avoid duplicate functions below. Have single function
+// for an input type, and have conversion methods between the two types.
 
 // Returns true if all dimensions have valid index ranges.
 bool IsValidShape(const TensorShape& shape);
@@ -65,7 +70,6 @@ bool IsElementInShape(const TensorShape& shape,
                       const std::vector<int>& position);
 bool IsElementInShape(const TensorShapeT& shape,
                       const std::vector<int>& position);
-
 // Returns a row-major-packed layout for a tensor shape.
 std::unique_ptr<TensorLayoutT> BuildPackedLayout(const TensorShape& shape);
 std::unique_ptr<TensorLayoutT> BuildPackedLayout(const TensorShapeT& shape);
@@ -76,6 +80,7 @@ bool IsValidLayout(const TensorLayoutT& layout);
 
 // Returns true if the layout has no padding.
 bool IsNoPaddingLayout(const TensorLayout& layout);
+bool IsNoPaddingLayout(const TensorLayoutT& layout);
 
 // Return the memory space size for the layout. This can be different from the
 // number of valid elements in the layout due to stride.
@@ -107,6 +112,10 @@ std::string DumpShape(const TensorShapeT& shape);
 // Dumps layout information.
 std::string DumpLayout(const TensorLayout& layout);
 std::string DumpLayout(const TensorLayoutT& layout);
+
+// Returns minimum bounding shape of given array of shapes.
+TensorShapeT GetMinimumBoundingShape(
+    const std::vector<const TensorShape*>& shapes);
 
 }  // namespace tensor_util
 }  // namespace api

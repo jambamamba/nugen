@@ -5,22 +5,26 @@ This module contains workspace definitions for building and using libedgetpu.
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
-TENSORFLOW_COMMIT = "f394a768719a55b5c351ed1ecab2ec6f16f99dd4"
-TENSORFLOW_SHA256 = "cb286abee7ee9cf5c8701d85fcc88f0fd59e72492ec4f254156de486e3e905c1"
+# TF release 2.5.0 as of 05/17/2021.
+TENSORFLOW_COMMIT = "a4dfb8d1a71385bd6d122e4f27f86dcebb96712d"
+TENSORFLOW_SHA256 = "cb99f136dc5c89143669888a44bfdd134c086e1e2d9e36278c1eb0f03fe62d76"
 
-IO_BAZEL_RULES_CLOSURE_COMMIT = "308b05b2419edb5c8ee0471b67a40403df940149"
-IO_BAZEL_RULES_CLOSURE_SHA256 = "5b00383d08dd71f28503736db0500b6fb4dda47489ff5fc6bed42557c07c6ba9"
-
-CORAL_CROSSTOOL_COMMIT = "9e00d5be43bf001f883b5700f5d04882fea00229"
-CORAL_CROSSTOOL_SHA256 = "cb31b1417ccdcf7dd9fca5ec63e1571672372c30427730255997a547569d2feb"
+CORAL_CROSSTOOL_COMMIT = "6bcc2261d9fc60dff386b557428d98917f0af491"
+CORAL_CROSSTOOL_SHA256 = "38cb4da13009d07ebc2fed4a9d055b0f914191b344dd2d1ca5803096343958b4"
 
 def libedgetpu_dependencies(
         tensorflow_commit = TENSORFLOW_COMMIT,
         tensorflow_sha256 = TENSORFLOW_SHA256,
-        io_bazel_rules_closure_commit = IO_BAZEL_RULES_CLOSURE_COMMIT,
-        io_bazel_rules_closure_sha256 = IO_BAZEL_RULES_CLOSURE_SHA256,
         coral_crosstool_commit = CORAL_CROSSTOOL_COMMIT,
         coral_crosstool_sha256 = CORAL_CROSSTOOL_SHA256):
+    """Sets up libedgetpu dependencies.
+
+    Args:
+      tensorflow_commit: https://github.com/tensorflow/tensorflow commit ID
+      tensorflow_sha256: corresponding sha256 of the source archive
+      coral_crosstool_commit: https://github.com/google-coral/crosstool commit ID
+      coral_crosstool_sha256: corresponding sha256 of the source archive
+    """
     maybe(
         http_archive,
         name = "org_tensorflow",
@@ -29,16 +33,6 @@ def libedgetpu_dependencies(
         ],
         sha256 = tensorflow_sha256,
         strip_prefix = "tensorflow-" + tensorflow_commit,
-    )
-
-    maybe(
-        http_archive,
-        name = "io_bazel_rules_closure",
-        urls = [
-            "https://github.com/bazelbuild/rules_closure/archive/" + io_bazel_rules_closure_commit + ".tar.gz",  # 2019-06-13
-        ],
-        sha256 = io_bazel_rules_closure_sha256,
-        strip_prefix = "rules_closure-" + io_bazel_rules_closure_commit,
     )
 
     maybe(
@@ -56,21 +50,60 @@ def libedgetpu_dependencies(
         name = "libusb",
     )
 
+    # Use bazel to query values defined here, e.g.:
+    #     bazel query "@libedgetpu_properties//..." | grep tensorflow_commit | cut -d\# -f2
+    _properties_repository(
+        name = "libedgetpu_properties",
+        properties = {
+            "tensorflow_commit": tensorflow_commit,
+            "coral_crosstool_commit": coral_crosstool_commit,
+        },
+    )
+
+def _brew_libusb_path(ctx):
+    res = ctx.execute(["/bin/bash", "-c", "command -v brew"])
+    if res.return_code != 0:
+        return None
+    brew = ctx.path(res.stdout.strip())
+
+    res = ctx.execute([brew, "ls", "--versions", "libusb"])
+    if res.return_code != 0:
+        return None
+
+    res = ctx.execute([brew, "--prefix", "libusb"])
+    if res.return_code != 0:
+        return None
+
+    return res.stdout.strip()
+
+def _port_libusb_path(ctx):
+    res = ctx.execute(["/bin/bash", "-c", "command -v port"])
+    if res.return_code != 0:
+        return None
+    port = ctx.path(res.stdout.strip())
+
+    res = ctx.execute([port, "info", "libusb"])
+    if res.return_code != 0:
+        return None
+
+    return port.dirname.dirname
+
 def _libusb_impl(ctx):
     lower_name = ctx.os.name.lower()
     if lower_name.startswith("linux"):
-        #path = "/home/dev/oosman/work.git/tensorflow.osm/edgetpu-minimal/libusb"
+        #path = None
         path = str(ctx.path(Label("@//:WORKSPACE"))) + "/../../libusb"
         build_file_content = """
 cc_library(
   name = "headers",
   includes = ["root"],
   hdrs = ["root/libusb-1.0/libusb.h"],
+  linkopts = ["-l:libusb-1.0.so"],
   visibility = ["//visibility:public"],
 )
 """
     elif lower_name.startswith("windows"):
-        path = str(ctx.path(Label("@//:WORKSPACE"))) + "/../../libusb-1.0.22"
+        path = str(ctx.path(Label("@//:WORKSPACE"))) + "/../../libusb"
         build_file_content = """
 cc_library(
   name = "headers",
@@ -80,25 +113,32 @@ cc_library(
 )
 cc_import(
   name = "shared",
-  interface_library = "root/MS64/dll/libusb-1.0.lib",
-  shared_library = "root/MS64/dll/libusb-1.0.dll",
+  interface_library = "root/VS2019/MS64/dll/libusb-1.0.lib",
+  shared_library = "root/VS2019/MS64/dll/libusb-1.0.dll",
   visibility = ["//visibility:public"],
 )
 """
     elif lower_name.startswith("mac os x"):
-        path = "/opt/local/include/"
+        path = _brew_libusb_path(ctx)
+        if not path:
+            path = _port_libusb_path(ctx)
+            if not path:
+                fail("Install libusb using MacPorts or Homebrew.")
+
         build_file_content = """
 cc_library(
   name = "headers",
-  includes = ["root"],
-  hdrs = ["root/libusb-1.0/libusb.h"],
+  includes = ["root/include"],
+  hdrs = ["root/include/libusb-1.0/libusb.h"],
+  srcs = ["root/lib/libusb-1.0.dylib"],
   visibility = ["//visibility:public"],
 )
 """
     else:
         fail("Unsupported operating system.")
 
-    ctx.symlink(path, "root")
+    if path:
+        ctx.symlink(path, "root")
     ctx.file(
         "BUILD",
         content = build_file_content,
@@ -107,4 +147,17 @@ cc_library(
 
 libusb_repository = repository_rule(
     implementation = _libusb_impl,
+)
+
+def _properties_impl(ctx):
+    content = ""
+    for name, value in ctx.attr.properties.items():
+        content += "filegroup(name='" + name + "#" + value + "')\n"
+    ctx.file("BUILD", content = content, executable = False)
+
+_properties_repository = repository_rule(
+    implementation = _properties_impl,
+    attrs = {
+        "properties": attr.string_dict(),
+    },
 )

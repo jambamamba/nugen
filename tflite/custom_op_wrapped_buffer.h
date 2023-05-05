@@ -12,27 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef DARWINN_PORT_DMA_MANAGER_H_
-#define DARWINN_PORT_DMA_MANAGER_H_
+#ifndef DARWINN_TFLITE_CUSTOM_OP_WRAPPED_BUFFER_H_
+#define DARWINN_TFLITE_CUSTOM_OP_WRAPPED_BUFFER_H_
 
-#include "port/defs.h"
-
-#if DARWINN_PORT_FIRMWARE
-
-#include "firmware/driver/dma/dma_manager.h"
+#include "api/chip.h"
 
 namespace platforms {
 namespace darwinn {
+namespace tflite {
 
-using DmaManager = firmware::driver::dma::DmaManager;
+// Convenient structure for holding the executable buffer inside a TfLite
+// custom op.
+struct CustomOpWrappedBuffer {
+  const char* data;
+  size_t length;
 
+  // Optional field. Use to specify the target chip of the wrapped executable
+  // when there are multiple exectuables in `CustomOpData` or `CustomOp2`.
+  api::Chip chip = api::Chip::kUnknown;
+};
+
+}  // namespace tflite
 }  // namespace darwinn
 }  // namespace platforms
 
-#else  // !DARWINN_PORT_FIRMWARE
-
-#include "port/default/dma_manager.h"
-
-#endif  // DARWINN_PORT_FIRMWARE
-
-#endif  // DARWINN_PORT_DMA_MANAGER_H_
+#endif  // DARWINN_TFLITE_CUSTOM_OP_WRAPPED_BUFFER_H_
