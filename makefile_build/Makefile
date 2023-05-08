@@ -24,9 +24,8 @@ LIBEDGETPU_CXXFLAGS := \
 	-Wall \
 	-std=c++14 \
 	-DDARWINN_PORT_DEFAULT \
-	-I$(BUILDROOT)/../libusb \
-	-I$(BUILDROOT)/../x86-build/flatbuffers/include \
-	-I$(BUILDROOT)/../x86-build/abseil-cpp \
+	-L$(BUILDROOT)/../abseil-cpp/x86-build/ \
+	-I$(BUILDROOT)/../flatbuffers/include/ \
 	-I$(BUILDROOT)/tensorflow \
 	-I$(BUILDROOT)/ \
 
