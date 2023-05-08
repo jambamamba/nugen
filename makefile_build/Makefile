@@ -25,8 +25,7 @@ LIBEDGETPU_CXXFLAGS := \
 	-std=c++14 \
 	-DDARWINN_PORT_DEFAULT \
 	-L$(BUILDROOT)/../abseil-cpp/arm-build/ \
-	-I$(BUILDROOT)/../opencv/3rdparty/flatbuffers/include/ \
-	-I$(BUILDROOT)/../arm-build/flatbuffers/include \
+	-I$(BUILDROOT)/../flatbuffers/include/ \
 	-I$(BUILDROOT)/tensorflow \
 	-I$(BUILDROOT)/ \
 
