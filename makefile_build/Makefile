@@ -10,8 +10,8 @@ BUILDROOT ?= $(MAKEFILE_DIR)/..
 BUILDDIR := $(BUILDROOT)/out
 TOBUILDDIR = $(addprefix $(BUILDDIR)/,$(1))
 MKDIR = if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-CC=gcc
-CXX=g++
+# CC=gcc
+# CXX=g++
 FLATC=flatc
 
 LIBEDGETPU_CFLAGS := \
@@ -24,9 +24,9 @@ LIBEDGETPU_CXXFLAGS := \
 	-Wall \
 	-std=c++14 \
 	-DDARWINN_PORT_DEFAULT \
-	-I$(BUILDROOT)/../x86-build/abseil-cpp \
+	-L$(BUILDROOT)/../abseil-cpp/arm-build/ \
 	-I$(BUILDROOT)/../opencv/3rdparty/flatbuffers/include/ \
-	-I$(BUILDROOT)/../x86-build/flatbuffers/include \
+	-I$(BUILDROOT)/../arm-build/flatbuffers/include \
 	-I$(BUILDROOT)/tensorflow \
 	-I$(BUILDROOT)/ \
 
@@ -38,6 +38,7 @@ LIBEDGETPU_LDFLAGS := \
 	-Wl,--version-script=$(BUILDROOT)/tflite/public/libedgetpu.lds \
 	-fuse-ld=gold \
 	-lflatbuffers \
+	-L$(BUILDROOT)/../abseil-cpp/arm-build/absl/flags/ \
 	-labsl_flags \
 	-labsl_flags_internal \
 	-labsl_flags_reflection \
@@ -46,7 +47,7 @@ LIBEDGETPU_LDFLAGS := \
 	-labsl_hashtablez_sampler \
 	-labsl_raw_hash_set \
 	-labsl_str_format_internal \
-	-lusb-1.0
+	-L$(BUILDROOT)/../libusb/arm-build -lusb
 
 LIBEDGETPU_FLATC_SRCS := \
 	$(BUILDROOT)/executable/executable.fbs \
