@@ -23,7 +23,13 @@ LIBEDGETPU_CXXFLAGS := \
 	-fPIC \
 	-Wall \
 	-std=c++14 \
-	-DDARWINN_PORT_DEFAULT
+	-DDARWINN_PORT_DEFAULT \
+	-I$(BUILDROOT)/../x86-build/abseil-cpp \
+	-I$(BUILDROOT)/../opencv/3rdparty/flatbuffers/include/ \
+	-I$(BUILDROOT)/../x86-build/flatbuffers/include \
+	-I$(BUILDROOT)/tensorflow \
+	-I$(BUILDROOT)/ \
+
 
 LIBEDGETPU_LDFLAGS := \
 	-Wl,-Map=$(BUILDDIR)/output.map \
