@@ -14,6 +14,9 @@
 
 #include "api/tensor_util.h"
 
+#include <vector>
+
+#include "executable/executable_generated.h"
 #include "port/logging.h"
 #include "port/string_util.h"
 #include "port/stringprintf.h"
@@ -24,6 +27,7 @@ namespace api {
 namespace tensor_util {
 
 TensorShapeT MakeTensorShape(const std::vector<int>& dimensions) {
+  CHECK_EQ(dimensions.size(), 5);
   TensorShapeT shape;
   shape.dimension.resize(dimensions.size());
   for (int i = 0; i < dimensions.size(); ++i) {
@@ -33,6 +37,7 @@ TensorShapeT MakeTensorShape(const std::vector<int>& dimensions) {
 }
 
 TensorShapeT MakeTensorShape(const std::vector<Range>& ranges) {
+  CHECK_EQ(ranges.size(), 5);
   TensorShapeT shape;
   shape.dimension.resize(ranges.size());
   for (int i = 0; i < ranges.size(); ++i) {
@@ -217,6 +222,20 @@ bool IsNoPaddingLayout(const TensorLayout& layout) {
   return true;
 }
 
+bool IsNoPaddingLayout(const TensorLayoutT& layout) {
+  DCHECK(IsValidLayout(layout));
+  const auto& shape = *layout.shape;
+
+  // There's no padding in layout if the stride equals to the dimension size.
+  for (int i = 0; i < shape.dimension.size() - 1; ++i) {
+    if (layout.stride[i] !=
+        layout.stride[i + 1] * GetDimensionLength(shape, i + 1)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 int GetLayoutSizeInElements(const TensorLayout& layout) {
   CHECK(IsValidLayout(layout));
   return GetDimensionLength(*layout.shape(), 0) * layout.stride()->Get(0);
@@ -317,6 +336,24 @@ std::string DumpLayout(const TensorLayoutT& layout) {
     StrAppend(&str, StringPrintf("%d", layout.stride[i]));
   }
   return str;
+}
+
+TensorShapeT GetMinimumBoundingShape(
+    const std::vector<const TensorShape*>& shapes) {
+  TensorShapeT merged_shape;
+  auto& merged_shape_dims = merged_shape.dimension;
+  int dimension_size = shapes[0]->dimension()->size();
+  merged_shape_dims.resize(dimension_size, {INT_MAX, INT_MIN});
+  for (int i = 0; i < shapes.size(); ++i) {
+    const TensorShape& slice_shape = *shapes[i];
+    for (int d = 0; d < dimension_size; ++d) {
+      const auto* cur_dim = slice_shape.dimension()->Get(d);
+      auto& dim = merged_shape_dims[d];
+      dim.mutate_start(std::min(dim.start(), cur_dim->start()));
+      dim.mutate_end(std::max(dim.end(), cur_dim->end()));
+    }
+  }
+  return merged_shape;
 }
 
 }  // namespace tensor_util

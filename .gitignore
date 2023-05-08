@@ -1,5 +1,7 @@
 bazel-*
 out/
+dist/
+.DS_Store
 CMakeLists.txt.user
 build*
 tensorflow

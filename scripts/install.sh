@@ -17,8 +17,13 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-LIBEDGETPU_DIR="${SCRIPT_DIR}/../out"
-RULES_FILE="${SCRIPT_DIR}/../debian/edgetpu-accelerator.rules"
+if [[ -d "${SCRIPT_DIR}/libedgetpu" ]]; then
+  LIBEDGETPU_DIR="${SCRIPT_DIR}/libedgetpu"
+  RULES_FILE="${SCRIPT_DIR}/libedgetpu/edgetpu-accelerator.rules"
+else
+  LIBEDGETPU_DIR=${LIBEDGETPU_BIN:-"${SCRIPT_DIR}/../out"}
+  RULES_FILE="${SCRIPT_DIR}/../debian/edgetpu-accelerator.rules"
+fi
 
 function info {
   echo -e "\033[0;32m${1}\033[0m"  # green
@@ -42,7 +47,7 @@ function install_file {
     warn "File already exists. Replacing it..."
     rm -f "${dst}"
   fi
-  cp -a "${src}" "${dst}"
+  cp "${src}" "${dst}"
 }
 
 if [[ "${EUID}" != 0 ]]; then
@@ -64,10 +69,6 @@ if [[ "${OS}" == "Linux" ]]; then
       HOST_GNU_TYPE=x86_64-linux-gnu
       CPU=k8
       ;;
-    armv6l)
-      HOST_GNU_TYPE=arm-linux-gnueabihf
-      CPU=armv6
-      ;;
     armv7l)
       HOST_GNU_TYPE=arm-linux-gnueabihf
       CPU=armv7a
@@ -82,13 +83,24 @@ if [[ "${OS}" == "Linux" ]]; then
       ;;
   esac
 elif [[ "${OS}" == "Darwin" ]]; then
-  CPU=darwin
+  case "${MACHINE}" in
+    x86_64)
+      CPU=darwin_x86_64
+      ;;
+    arm64)
+      CPU=darwin_arm64
+      ;;
+    *)
+      error "Your macOS platform is not supported."
+      exit 1
+      ;;
+  esac
 
   MACPORTS_PATH_AUTO="$(command -v port || true)"
   MACPORTS_PATH="${MACPORTS_PATH_AUTO:-/opt/local/bin/port}"
 
-  BREW_PATH_AUTO="$(command -v brew || true)"
-  BREW_PATH="${BREW_PATH_AUTO:-/usr/local/bin/brew}"
+  BREW_PATH_AUTO="$(sudo -i -u ${SUDO_USER} command -v brew || true)"
+  BREW_PATH="${BREW_PATH_AUTO:-/opt/homebrew/bin/brew}"
 
   if [[ -x "${MACPORTS_PATH}" ]]; then
     DARWIN_INSTALL_COMMAND="${MACPORTS_PATH}"
@@ -134,7 +146,7 @@ case "${USE_MAX_FREQ}" in
     ;;
 esac
 
-if [[ "${CPU}" == "darwin" ]]; then
+if [[ "${CPU}" == darwin* ]]; then
   sudo -u "${DARWIN_INSTALL_USER}" "${DARWIN_INSTALL_COMMAND}" install libusb
 
   DARWIN_INSTALL_LIB_DIR="$(dirname "$(dirname "${DARWIN_INSTALL_COMMAND}")")/lib"
@@ -142,17 +154,16 @@ if [[ "${CPU}" == "darwin" ]]; then
   mkdir -p "${LIBEDGETPU_LIB_DIR}"
 
   install_file "Edge TPU runtime library" \
-               "${LIBEDGETPU_DIR}/${FREQ_DIR}/darwin/libedgetpu.1.0.dylib" \
+               "${LIBEDGETPU_DIR}/${FREQ_DIR}/${CPU}/libedgetpu.1.0.dylib" \
                "${LIBEDGETPU_LIB_DIR}"
 
-  install_file "Edge TPU runtime library symlink" \
-               "${LIBEDGETPU_DIR}/${FREQ_DIR}/darwin/libedgetpu.1.dylib" \
-               "${LIBEDGETPU_LIB_DIR}"
+  info "Generating symlink [${LIBEDGETPU_LIB_DIR}/libedgetpu.1.dylib]..."
+  ln -sf libedgetpu.1.0.dylib "${LIBEDGETPU_LIB_DIR}/libedgetpu.1.dylib"
 
   install_name_tool -id  "${LIBEDGETPU_LIB_DIR}/libedgetpu.1.dylib" \
                          "${LIBEDGETPU_LIB_DIR}/libedgetpu.1.0.dylib"
 
-  install_name_tool -change "/opt/local/lib/libusb-1.0.0.dylib" \
+  install_name_tool -change $(otool -L "${LIBEDGETPU_LIB_DIR}/libedgetpu.1.0.dylib" | grep usb | awk '{print $1}') \
                             "${DARWIN_INSTALL_LIB_DIR}/libusb-1.0.0.dylib" \
                             "${LIBEDGETPU_LIB_DIR}/libedgetpu.1.0.dylib"
 else
@@ -182,4 +193,3 @@ else
   ldconfig  # Generates libedgetpu.so.1 symlink
   info "Done."
 fi
-
