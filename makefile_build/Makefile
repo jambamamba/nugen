@@ -23,7 +23,12 @@ LIBEDGETPU_CXXFLAGS := \
 	-fPIC \
 	-Wall \
 	-std=c++14 \
-	-DDARWINN_PORT_DEFAULT
+	-DDARWINN_PORT_DEFAULT \
+	-I$(BUILDROOT)/../libusb \
+	-I$(BUILDROOT)/../x86-build/flatbuffers/include \
+	-I$(BUILDROOT)/../x86-build/abseil-cpp \
+	-I$(BUILDROOT)/tensorflow \
+	-I$(BUILDROOT)/ \
 
 LIBEDGETPU_LDFLAGS := \
 	-Wl,-Map=$(BUILDDIR)/output.map \
@@ -40,7 +45,7 @@ LIBEDGETPU_LDFLAGS := \
 	-labsl_hashtablez_sampler \
 	-labsl_raw_hash_set \
 	-labsl_str_format_internal \
-	-lusb-1.0
+	-L$(BUILDROOT)/../x86-build/_deps/abseil-cpp-build/absl/flags/ -lusb
 
 LIBEDGETPU_FLATC_SRCS := \
 	$(BUILDROOT)/executable/executable.fbs \
